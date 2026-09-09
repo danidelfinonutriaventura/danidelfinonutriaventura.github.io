@@ -1,0 +1,1027 @@
+/* ============================================================
+   PORTADA
+   ============================================================ */
+
+/* ---------- PORTADA ---------- */
+
+/* El logo ya viene recortado a su contenido (logo.png), así que
+   no necesita compensaciones: ocupa solo lo que mide. */
+.portada__logo {
+  width: min(255px, 68%);
+  height: auto;
+  margin: 0 auto 0.3rem;
+}
+
+.portada__retrato {
+  /* El tamaño se publica como variable porque la órbita de alimentos
+     lo necesita para calcular su radio. */
+  --tam: min(250px, 66vw);
+  position: relative;
+  width: var(--tam);
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.portada__marco {
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 6px solid var(--blanco);
+  box-shadow: 0 10px 30px var(--sombra);
+  background: var(--rosa-claro);
+}
+.portada__marco::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 4px dashed var(--rosa-borde);
+  pointer-events: none;
+}
+.portada__marco img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+/* Los seis alimentos van sobre un círculo alrededor de la foto, a la
+   misma distancia del centro y repartidos en dos grupos simétricos:
+   tres a la izquierda y tres a la derecha, en espejo.
+   Ninguno queda justo arriba ni justo abajo: arriba está el logo y
+   abajo arranca el texto "¡Hola, soy Dani!".
+   El radio (56% del ancho del retrato) está calculado para que aun
+   en el punto más alto del vaivén ninguno toque el círculo. */
+.portada__orbita {
+  --radio: calc(var(--tam) * 0.56);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(52px, calc(var(--tam) * 0.26), 64px);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 4px 8px var(--sombra));
+  /* Se gira el eje, se empuja el alimento hacia afuera y se lo
+     desgira, para que salga derecho y no de costado. */
+  transform: translate(-50%, -50%) rotate(var(--angulo)) translateX(var(--radio))
+    rotate(calc(-1 * var(--angulo)));
+}
+
+.portada__orbita svg { width: 100%; height: auto; }
+
+/* El vaivén va en un span de adentro: si fuera en el mismo elemento,
+   pisaría el transform que lo coloca en el círculo. */
+.portada__flota {
+  display: block;
+  animation: flotar-orbita 4.5s ease-in-out infinite;
+  animation-delay: var(--retraso, 0s);
+}
+
+@keyframes flotar-orbita {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portada__flota { animation: none; }
+}
+
+/* Derecha: frutilla arriba, naranja al medio, brócoli abajo. */
+.orbita--1 { --angulo: -35deg; --retraso: 0s; }
+.orbita--2 { --angulo: 0deg;   --retraso: .5s; }
+.orbita--3 { --angulo: 35deg;  --retraso: 1s; }
+/* Izquierda: el espejo exacto de los de la derecha. */
+.orbita--4 { --angulo: 145deg; --retraso: 1.5s; }
+.orbita--5 { --angulo: 180deg; --retraso: 2s; }
+.orbita--6 { --angulo: 215deg; --retraso: 2.5s; }
+/* Las estrellitas titilan por toda la portada. Cada una arranca en un
+   momento distinto para que no parpadeen todas juntas, y van detrás de
+   todo (clase .deco), así nunca tapan un texto ni un botón. */
+.portada__destello {
+  position: absolute;
+  animation: brillar 3.4s ease-in-out infinite;
+}
+
+.destello--1 { top: 9%;  left: 10%; animation-delay: 0s; }
+.destello--2 { top: 5%;  right: 13%; animation-delay: 1.1s; }
+.destello--3 { top: 27%; right: 5%;  animation-delay: 2.2s; }
+.destello--4 { top: 24%; left: 4%;   animation-delay: 0.6s; }
+.destello--5 { top: 45%; right: 8%;  animation-delay: 1.7s; }
+.destello--6 { top: 43%; left: 7%;   animation-delay: 2.8s; }
+.destello--7 { bottom: 12%; left: 14%; animation-delay: 1.4s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .portada__destello { animation: none; opacity: 0.7; }
+}
+
+/* Las nubes son blancas sobre un celeste muy claro: si además van
+   translúcidas casi no se ven. Van casi opacas y grandes, que es
+   lo que las hace leer como nubes y no como manchas.
+   Y cruzan la portada muy despacio, como nubes de verdad: tardan
+   más de un minuto en pasar, así acompañan sin distraer. */
+.portada__nube {
+  opacity: 0.95;
+  left: -32%;
+  right: auto;
+  animation: pasar-nube 78s linear infinite;
+}
+
+/* La segunda arranca a mitad de camino, para que siempre haya una
+   nube de cada lado. */
+.portada__nube--1 { top: 3%;  animation-delay: 0s; }
+.portada__nube--2 { top: 13%; animation-delay: -39s; }
+
+@keyframes pasar-nube {
+  from { transform: translateX(0); }
+  to   { transform: translateX(145vw); }
+}
+
+/* Si el dispositivo pide menos movimiento, se quedan quietas, una
+   a cada lado. */
+@media (prefers-reduced-motion: reduce) {
+  .portada__nube { animation: none; }
+  .portada__nube--1 { left: -9%; }
+  .portada__nube--2 { left: auto; right: -7%; }
+}
+
+.portada__saludo {
+  font-size: var(--t-gigante);
+  color: var(--rojo);
+  margin-bottom: 0.15em;
+}
+.portada__presenta { font-weight: 700; margin-bottom: 0.7em; }
+.portada__pregunta {
+  font-family: var(--fuente-titulo);
+  font-size: var(--t-sub);
+  color: var(--rojo);
+  margin-top: 0.6em;
+  margin-bottom: 0;
+}
+
+@media (min-width: 760px) {
+  /* Se cambia la variable y no el ancho: el radio de la órbita se
+     calcula sobre ella, así los alimentos acompañan al retrato. */
+  .portada__retrato { --tam: 300px; }
+}
+
+
+/* ============================================================
+   MAPA
+   ============================================================ */
+
+/* ---------- MAPA DEL TESORO ---------- */
+
+.mapa__barra {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.75rem; width: 100%;
+}
+.mapa__reiniciar {
+  width: 44px; height: 44px; border-radius: 999px;
+  background: var(--blanco); border: 3px solid var(--rosa-borde);
+  color: var(--texto); display: grid; place-items: center; cursor: pointer;
+  box-shadow: 0 3px 10px var(--sombra);
+}
+
+.mapa__titulo { color: var(--rojo); margin-bottom: 0.2em; }
+.mapa__intro { font-size: var(--t-cuerpo); margin-bottom: 0; }
+.mapa__ayuda { font-size: var(--t-chico); margin: 0; }
+
+.mapa {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radio-grande);
+  /* Cielo y pasto con un poco más de color: antes era casi blanco y
+     los dibujos quedaban flotando sobre nada. */
+  background: linear-gradient(180deg, #A5DDF9 0%, #CFEDBE 62%);
+  border: 4px solid var(--blanco);
+  /* Sombra marcada: el mapa es una lámina apoyada sobre la pantalla,
+     y así se despega del fondo celeste en vez de fundirse con él. */
+  box-shadow: 0 16px 36px var(--sombra-fuerte), 0 4px 10px var(--sombra);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.mapa__lienzo {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+}
+
+.mapa__deco { position: absolute; pointer-events: none; }
+/* El cielo quedó más ocupado desde que el cofre subió al medio y la
+   charla con Dani entró arriba a la derecha: las nubes y la montaña
+   se corrieron a los huecos que quedaron. */
+.mapa__nube1   { top: 1%;  left: 44%; }
+.mapa__nube2   { top: 20%; left: 1%; }
+.mapa__montana { top: 30%; left: -10%; }
+.mapa__arbol1  { bottom: 4%;  right: 8%; }
+/* A la izquierda: a la derecha rozaba la etiqueta "Hago una pausa",
+   y además así los dos árboles no quedan del mismo lado. */
+.mapa__arbol2  { top: 44%;  left: 1%; }
+.mapa__flor1   { bottom: 16%; left: 46%; }
+.mapa__flor2   { top: 64%;  left: 4%; }
+.mapa__bandera { top: 33%;  left: 50%; }
+.mapa__brujula { bottom: 1%; left: 47%; }
+
+/* ---------- ESTACIONES ---------- */
+.estacion {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
+  background: none; border: none; padding: 0; cursor: pointer;
+  width: 92px; min-height: var(--toque-min);
+  font-family: var(--fuente-titulo);
+  color: var(--texto);
+  transition: transform var(--vel) var(--curva);
+}
+.estacion:hover:not(:disabled) { transform: translate(-50%, -54%); }
+.estacion:disabled { cursor: not-allowed; }
+
+.estacion__circulo {
+  width: 54px; height: 54px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 1.35rem; font-weight: 600;
+  border: 4px solid var(--blanco);
+  box-shadow: 0 5px 14px var(--sombra-fuerte);
+  background: var(--blanco); color: var(--texto);
+}
+.estacion__nombre {
+  font-size: 0.72rem; line-height: 1.15; text-align: center;
+  background: rgba(255,255,255,0.92);
+  border-radius: 999px; padding: 0.15rem 0.5rem;
+  box-shadow: 0 2px 6px var(--sombra);
+  max-width: 100%;
+}
+
+/* Acentos por estación */
+.estacion--amarillo .estacion__circulo { background: var(--amarillo); }
+.estacion--celeste  .estacion__circulo { background: var(--celeste); }
+.estacion--rosa     .estacion__circulo { background: var(--rosa); }
+
+/* Estados — nunca comunicados solo por color:
+   cambian el ícono, el borde y el texto accesible. */
+.estacion--disponible .estacion__circulo {
+  border-color: var(--rojo);
+  animation: latir 2.4s ease-in-out infinite;
+}
+.estacion--completada .estacion__circulo {
+  background: var(--rojo); color: var(--blanco); border-color: var(--blanco);
+}
+.estacion--bloqueada { opacity: 0.62; }
+.estacion--bloqueada .estacion__circulo {
+  background: #E9E4DC; color: var(--texto-suave); border-color: var(--blanco);
+}
+.estacion--bloqueada .estacion__nombre { background: rgba(255,255,255,0.75); }
+
+/* ---------- TESORO ---------- */
+.mapa__tesoro {
+  position: absolute; transform: translate(-50%, -50%);
+  filter: grayscale(0.55) opacity(0.7);
+  transition: filter var(--vel-lenta);
+}
+.mapa__tesoro--listo {
+  filter: none;
+  animation: latir 1.8s ease-in-out infinite;
+}
+
+@media (min-width: 560px) {
+  .mapa { max-width: 520px; aspect-ratio: 1 / 1.1; }
+  .estacion { width: 118px; }
+  .estacion__circulo { width: 62px; height: 62px; font-size: 1.5rem; }
+  .estacion__nombre { font-size: 0.82rem; }
+}
+
+
+/* ============================================================
+   NUTRITESORO
+   ============================================================ */
+
+/* ---------- TESORO NUTRI ---------- */
+
+.tesoro {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0.5rem 0;
+}
+.tesoro__cofre { filter: drop-shadow(0 10px 26px var(--sombra-fuerte)); }
+
+.tesoro__destello { position: absolute; }
+.tesoro__destello--1 { top: 0;   left: 24%; animation: brillar 2.2s ease-in-out infinite; }
+.tesoro__destello--2 { top: 14%; right: 22%; animation: brillar 2.2s ease-in-out infinite .6s; }
+.tesoro__destello--3 { bottom: 8%; left: 18%; animation: brillar 2.2s ease-in-out infinite 1.2s; }
+
+.tesoro__titulo {
+  font-size: var(--t-gigante);
+  color: var(--rojo);
+  margin-bottom: 0.2em;
+}
+.tesoro__texto { font-size: var(--t-sub); margin-bottom: 0.3em; }
+.tesoro__estrellas {
+  font-family: var(--fuente-titulo);
+  font-size: var(--t-sub);
+  color: var(--rojo);
+  margin: 0;
+}
+
+/* ---------- EL FESTEJO: LA ESTRELLA GRANDE DEL FINAL ---------- */
+/* Pasa una sola vez, al llegar al NutriTesoro.
+   `pointer-events: none` es importante: aunque ocupa toda la
+   pantalla, los toques la atraviesan y el botón de abajo se
+   puede apretar igual mientras la animación corre. */
+.festejo {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+/* El resplandor que se abre detrás de la estrella. Va blanco y no
+   amarillo: el fondo del NutriTesoro ya es amarillo, y un halo
+   amarillo sobre amarillo no se veía. */
+.festejo__halo {
+  position: absolute;
+  width: min(80vw, 440px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.6) 45%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  animation: festejo-halo 2s ease-out forwards;
+}
+
+.festejo__estrella {
+  display: block;
+  filter: drop-shadow(0 12px 30px var(--sombra-fuerte));
+  animation: festejo-estrella 2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* La estrella se dibuja con un tamaño fijo, pero acá manda el CSS
+   para que en un celular chico no se salga de la pantalla. */
+.festejo__estrella svg {
+  width: min(64vw, 300px);
+  height: auto;
+}
+
+/* Crece girando, rebota un poquito y se apaga. */
+@keyframes festejo-estrella {
+  0%   { transform: scale(0.1)  rotate(-150deg); opacity: 0; }
+  24%  { transform: scale(1.18) rotate(10deg);   opacity: 1; }
+  38%  { transform: scale(0.96) rotate(-4deg);   opacity: 1; }
+  50%  { transform: scale(1.04) rotate(0deg);    opacity: 1; }
+  76%  { transform: scale(1)    rotate(0deg);    opacity: 1; }
+  100% { transform: scale(0.5)  rotate(0deg);    opacity: 0; }
+}
+
+@keyframes festejo-halo {
+  0%   { transform: scale(0.2); opacity: 0; }
+  30%  { transform: scale(1);   opacity: 0.9; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Si el dispositivo pide menos movimiento, el componente ni
+   siquiera se dibuja. Esto es sólo una red de seguridad. */
+@media (prefers-reduced-motion: reduce) {
+  .festejo { display: none; }
+}
+
+/* Las seis estrellitas que salen disparadas del centro.
+   Cada una lleva su propio ángulo en --giro: primero se gira el
+   eje, después se la empuja hacia afuera y por último se la
+   desgira, para que salga derecha y no de costado. */
+.festejo__chispa {
+  position: absolute;
+  animation: festejo-chispa 1.5s cubic-bezier(0.2, 0.8, 0.3, 1) 0.18s forwards;
+  opacity: 0;
+}
+
+.festejo__chispa svg {
+  width: min(12vw, 52px);
+  height: auto;
+}
+
+@keyframes festejo-chispa {
+  0% {
+    transform: rotate(var(--giro)) translateY(0) rotate(calc(-1 * var(--giro))) scale(0.2);
+    opacity: 0;
+  }
+  30% { opacity: 1; }
+  100% {
+    transform: rotate(var(--giro)) translateY(max(-44vw, -215px))
+      rotate(calc(-1 * var(--giro))) scale(0.8);
+    opacity: 0;
+  }
+}
+
+
+/* ============================================================
+   CERTIFICADO
+   ============================================================ */
+
+/* ============================================================
+   CERTIFICADO
+   En pantalla: una hoja apaisada que se adapta al ancho.
+   Al imprimir: A4 horizontal, sin nada más en la página.
+   ============================================================ */
+
+.hoja {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  aspect-ratio: 297 / 210;   /* A4 horizontal */
+  container-type: inline-size;
+}
+
+.hoja__marco {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  /* Arriba y abajo miden casi lo mismo, así el bloque de texto
+     queda centrado en la hoja.
+     OJO si cambiás la frase del final: hoy entra en dos renglones
+     y le sobran unos 2,5cqw hasta la fecha y la firma. Con dos
+     renglones más todavía entra; con más que eso hay que subir
+     este número. */
+  padding: 3.4cqw 5cqw 5cqw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--blanco);
+  border: 0.9cqw solid var(--rojo);
+  border-radius: 2.5cqw;
+  outline: 0.35cqw solid var(--rosa);
+  outline-offset: -1.9cqw;
+  overflow: hidden;
+}
+
+/* Alimentos en las esquinas */
+.hoja__esquina { position: absolute; width: 7cqw; }
+.hoja__esquina svg { width: 100%; height: auto; }
+.hoja__esquina--1 { top: 4.2cqw; left: 4.4cqw; }
+.hoja__esquina--2 { bottom: 4.2cqw; right: 4.4cqw; }
+
+.hoja__titulo {
+  font-family: var(--fuente-titulo);
+  font-size: 3.1cqw;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--rojo);
+  margin: 0 0 0.5cqw;
+}
+.hoja__felicita {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: 4.4cqw;
+  color: var(--texto);
+  margin: 0 0 0.4cqw;
+}
+.hoja__bajada {
+  font-size: 2.05cqw;
+  max-width: 68%;
+  margin: 0 0 2cqw;
+  line-height: 1.4;
+}
+.hoja__reconoce { font-size: 1.85cqw; margin: 0; }
+
+.hoja__nombre {
+  font-family: var(--fuente-titulo);
+  font-size: 6.4cqw;
+  font-weight: 700;
+  color: var(--rojo);
+  line-height: 1.05;
+  margin: 0.3cqw 0;
+  max-width: 90%;
+  word-break: break-word;
+}
+/* Los nombres largos se achican solos para no romper la hoja. */
+.hoja__nombre[data-largo='si'] { font-size: 4.4cqw; }
+
+.hoja__linea {
+  display: block;
+  width: 46%;
+  height: 0;
+  border-bottom: 0.4cqw dashed var(--rosa-borde);
+  margin: 5cqw 0 1.4cqw;
+}
+
+.hoja__porCompletar { font-size: 1.85cqw; margin: 0 0 1.4cqw; }
+
+.hoja__estrellas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.3cqw;
+  max-width: 70%;
+  margin-bottom: 1.4cqw;
+}
+.hoja__estrellas svg { width: 2.4cqw; height: auto; }
+
+.hoja__frase {
+  font-size: 1.75cqw;
+  font-style: italic;
+  color: var(--texto-suave);
+  max-width: 66%;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* El pie se mantiene por dentro de las ilustraciones de las
+   esquinas, para que nunca se superpongan con la firma. */
+.hoja__pie {
+  position: absolute;
+  bottom: 4.5cqw;
+  left: 12.5cqw;
+  right: 12.5cqw;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2cqw;
+}
+.hoja__fecha { font-size: 1.6cqw; color: var(--texto-suave); white-space: nowrap; }
+.hoja__firma {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 20cqw;
+}
+.hoja__firma img { width: 12cqw; height: auto; }
+
+
+/* Bien metida en la esquina: la cinta baja en diagonal hacia la
+   izquierda, y más abajo se le venía encima al título.
+   Es lo primero que mira un chico cuando le dan el certificado,
+   así que va con letra grande y bien contrastada. */
+.hoja__sello {
+  position: absolute;
+  top: 8cqw;
+  right: -11.1cqw;
+  transform: rotate(38deg);
+  background: var(--amarillo);
+  border: 0.4cqw solid var(--rojo);
+  color: var(--texto);
+  font-family: var(--fuente-titulo);
+  font-size: 2.3cqw;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 1cqw 9cqw;
+  box-shadow: 0 0.3cqw 0.8cqw rgba(121, 22, 19, 0.22);
+}
+
+/* ---------- VISTA PREVIA DE LA DESCARGA ---------- */
+.descarga {
+  display: grid;
+  gap: 0.6rem;
+  background: var(--amarillo-claro);
+  border: 3px solid var(--amarillo-borde);
+  border-radius: var(--radio);
+  padding: 0.9rem;
+  animation: aparecer var(--vel) var(--curva);
+}
+.descarga__aviso {
+  margin: 0;
+  text-align: center;
+  font-size: var(--t-chico);
+}
+.descarga__imagen {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radio-chico);
+  border: 2px solid var(--rosa-borde);
+  background: var(--blanco);
+}
+
+/* ============================================================
+   IMPRESIÓN — A4 HORIZONTAL
+   Se oculta toda la interfaz: en la hoja queda solo el certificado.
+   ============================================================ */
+@media print {
+  /* El margen lo pone la hoja, no la página.
+     Acá antes decía "margin: 8mm". Con eso quedaban 281 mm de ancho
+     útil y, al mantener la proporción A4, la hoja pedía 198,7 mm de
+     alto cuando solo quedaban 194 mm libres. Esos 4,7 mm de más
+     empujaban el certificado a una segunda hoja.
+     Ahora la hoja lleva medidas fijas, calculadas para entrar en una
+     sola con casi 1 cm de margen por todos lados. */
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
+  html, body, #root {
+    height: auto;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    background: #FFFFFF;
+  }
+
+  /* La textura de papel es para la pantalla, no para la impresora. */
+  body::after { display: none !important; }
+
+  /* Nada de la aplicación se imprime... */
+  .pantalla { min-height: 0; padding: 0; margin: 0; background: none !important; }
+  .cabecera, .pantalla__pie, .saltar, .sin-imprimir, .contador, .descarga { display: none !important; }
+
+  /* ...salvo el certificado, que ocupa la hoja entera. */
+  .pantalla__cuerpo { display: block; max-width: none; padding: 0; margin: 0; gap: 0; }
+  .hoja {
+    /* 192 mm de alto + 7 arriba + 7 abajo = 206 mm: quedan 4 mm de
+       sobra sobre los 210 de la hoja A4. Esa holgura es a propósito,
+       porque cada impresora redondea distinto y, si el cálculo da
+       justo 210, cualquier décima de más manda todo a una segunda
+       hoja. El ancho mantiene la proporción A4: 192 × 297/210. */
+    width: 271.5mm;
+    height: 192mm;
+    max-width: none;
+    aspect-ratio: auto;
+    margin: 7mm auto;
+    overflow: hidden;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  .hoja__marco {
+    border-radius: 0;
+    box-shadow: none;
+    /* Que los colores de fondo se impriman de verdad. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .anim-entrar { animation: none; }
+}
+
+
+/* ============================================================
+   CIERRE
+   ============================================================ */
+
+/* ---------- CIERRE ---------- */
+
+.cierre__guirnalda {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.cierre__gracias {
+  color: var(--rojo);
+  font-size: var(--t-titulo);
+  margin-bottom: 0;
+}
+
+.cierre__logo {
+  width: min(255px, 68%);
+  height: auto;
+  margin: 0 auto;
+}
+
+.cierre__frase {
+  margin: 0;
+  background: var(--blanco);
+  border: 3px solid var(--rosa-borde);
+  border-radius: var(--radio-grande);
+  padding: 1.1rem 1.3rem;
+  text-align: center;
+  font-size: var(--t-cuerpo);
+  line-height: 1.5;
+  box-shadow: 0 6px 18px var(--sombra);
+}
+
+.cierre__seguimos {
+  font-family: var(--fuente-titulo);
+  font-size: var(--t-sub);
+  color: var(--rojo);
+  margin: 0;
+}
+
+.cierre__contacto { display: grid; gap: 0.6rem; }
+
+.cierre__usuario {
+  font-size: var(--t-chico);
+  color: var(--texto-suave);
+  margin: 0;
+}
+
+.cierre__flor { margin: 0 auto; }
+
+@media (min-width: 560px) {
+  .cierre__contacto { grid-template-columns: 1fr 1fr; }
+}
+
+
+/* ============================================================
+   CHARLANDO CON LA NUTRI
+   ============================================================ */
+
+/* ---------- DESAFÍO DE LA SEMANA (el chat) ----------
+   Un chat de celular: cabecera arriba, conversación abajo.
+
+   Los colores de ESTA pantalla no son los de la marca a propósito:
+   son los de una aplicación de mensajes (verde oscuro arriba, fondo
+   beige, globo verde claro del lado de quien escribe). Dani quiso
+   que se pareciera a un chat de verdad, y sobre el celeste del
+   fondo de la aventura además se despega bien.
+   Si algún día querés volver a la paleta de la marca, se cambian
+   nada más las cinco variables de acá abajo. */
+
+.chat {
+  --chat-cabecera: #075E54;
+  --chat-fondo: #ECE5DD;
+  --chat-dani: #FFFFFF;
+  --chat-chico: #DCF8C6;
+  --chat-barra: #F0F0F0;
+
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  background: var(--chat-dani);
+  border: 3px solid var(--chat-cabecera);
+  border-radius: var(--radio-grande);
+  box-shadow: 0 12px 30px var(--sombra-fuerte);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Cabecera ---------- */
+.chat__cabecera {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--chat-cabecera);
+}
+
+.chat__foto {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 18%;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  flex-shrink: 0;
+}
+
+.chat__nombre {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: var(--t-cuerpo);
+  color: #FFFFFF;
+}
+
+.chat__estado {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* ---------- La conversación ---------- */
+.chat__hilo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.9rem 0.7rem;
+  /* La caja crece con la charla hasta un máximo y recién ahí empieza
+     a desplazarse adentro: así se lee cómodo y, al mismo tiempo, la
+     cabecera y la barra de abajo no se mueven nunca. */
+  min-height: 300px;
+  max-height: min(56vh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--chat-fondo);
+}
+
+/* Cada renglón: el avatar de Dani y su globo, o el globo del chico
+   pegado a la derecha. */
+.chat__linea {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+.chat__linea--chico { justify-content: flex-end; }
+
+/* La foto de Dani al lado de sus mensajes, como en un chat real.
+   Sólo aparece en el primero de cada tanda; en los siguientes queda
+   el hueco, para que los globos sigan alineados. */
+.chat__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 18%;
+  flex-shrink: 0;
+  border: 2px solid var(--chat-dani);
+}
+.chat__avatar--hueco { border-color: transparent; background: none; }
+
+/* La frutilla bordó es la carita del chico, del lado de sus globos. */
+.chat__avatar--frutilla {
+  display: grid;
+  place-items: center;
+  background: var(--rosa);
+  border-color: var(--chat-chico);
+}
+
+.chat__globo {
+  position: relative;
+  max-width: 78%;
+  padding: 0.6rem 0.85rem 1.35rem;
+  font-size: var(--t-cuerpo);
+  line-height: 1.4;
+  color: var(--texto);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+  animation: globo-entra var(--vel) var(--curva);
+}
+
+/* Los de Dani: blancos, a la izquierda. */
+.chat__globo--dani {
+  background: var(--chat-dani);
+  border-radius: var(--radio) var(--radio) var(--radio) 4px;
+}
+
+/* Los del chico: verde claro, a la derecha. */
+.chat__globo--chico {
+  background: var(--chat-chico);
+  border-radius: var(--radio) var(--radio) 4px var(--radio);
+  font-family: var(--fuente-titulo);
+  font-weight: 600;
+}
+
+/* La hora, chiquita y abajo a la derecha del globo. En los mensajes
+   del chico va con el tilde doble de "enviado". */
+.chat__hora {
+  position: absolute;
+  right: 0.7rem;
+  bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: #6B7A70;
+  letter-spacing: 0.02em;
+}
+
+.chat__enviado { color: #4FA8D8; }
+
+@keyframes globo-entra {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- El alimento propuesto ---------- */
+.chat__premio {
+  display: grid;
+  place-items: center;
+  gap: 0.3rem;
+  padding-top: 0.8rem;
+}
+
+.chat__alimento {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: var(--t-sub);
+  color: var(--rojo);
+  text-transform: capitalize;
+}
+
+/* ---------- Los tres puntitos ---------- */
+.chat__puntos {
+  display: flex;
+  gap: 5px;
+  padding: 0.8rem 0.85rem;
+}
+
+.chat__puntos span {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #9AA79F;
+  animation: puntito 1.2s ease-in-out infinite;
+}
+.chat__puntos span:nth-child(2) { animation-delay: 0.2s; }
+.chat__puntos span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes puntito {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30%           { opacity: 1;   transform: translateY(-4px); }
+}
+
+/* Si el dispositivo pide menos movimiento, los puntitos no saltan:
+   solo cambian de intensidad. */
+@media (prefers-reduced-motion: reduce) {
+  .chat__puntos span { animation: puntito-quieto 1.2s ease-in-out infinite; }
+  .chat__globo { animation: none; }
+  .chat__cursor { animation: none; opacity: 1; }
+}
+
+@keyframes puntito-quieto {
+  0%, 60%, 100% { opacity: 0.3; }
+  30%           { opacity: 1; }
+}
+
+/* ---------- La barra donde "se escribe" la respuesta ---------- */
+.chat__barra {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--chat-barra);
+}
+
+.chat__campo {
+  flex: 1;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: #FFFFFF;
+  color: var(--texto);
+  font-size: var(--t-cuerpo);
+  line-height: 1.3;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+/* El cursor que titila mientras se escribe. */
+.chat__cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 1px;
+  background: var(--texto);
+  animation: cursor 1s step-end infinite;
+}
+
+@keyframes cursor {
+  0%, 50%  { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.chat__enviar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #128C7E;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+
+/* ---------- Las opciones ---------- */
+.chat__opciones {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.8rem 0.9rem 0.9rem;
+  background: var(--chat-barra);
+  animation: globo-entra var(--vel) var(--curva);
+}
+
+.chat__opciones--colores {
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.chat__opcion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--toque-min);
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  border: 3px solid #128C7E;
+  background: var(--blanco);
+  color: var(--texto);
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  font-size: var(--t-cuerpo);
+  cursor: pointer;
+  box-shadow: 0 3px 10px var(--sombra);
+  transition: transform var(--vel-rapida) var(--curva), border-color var(--vel-rapida);
+  touch-action: manipulation;
+}
+
+.chat__opcion:hover { transform: translateY(-2px); border-color: #075E54; }
+.chat__opcion:active { transform: translateY(2px); }
+
+/* En las de color, el borde ya lleva el color: el puntito lo confirma
+   sin depender solamente del color para entenderse. */
+.chat__punto {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--texto);
+  flex-shrink: 0;
+}

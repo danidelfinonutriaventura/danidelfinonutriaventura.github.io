@@ -1,0 +1,418 @@
+/* ============================================================
+   NUTRIAVENTURA — ESTILOS BASE
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+html {
+  /* iPhone en horizontal agranda solo el texto si no se le dice que
+     no. Sin esto, girar el celular descoloca todas las pantallas. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fuente-texto);
+  font-size: var(--t-cuerpo);
+  line-height: 1.55;
+  color: var(--texto);
+  background: var(--celeste-claro);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+  /* Android Chrome recarga la página si tirás hacia abajo estando
+     arriba de todo. En medio de un juego eso borra la partida. */
+  overscroll-behavior-y: contain;
+}
+
+/* Nada de esperar 300 ms ni de hacer zoom con doble toque sobre algo
+   que se puede tocar: en un celular se siente lento y descolocado. */
+button, a, input, label, summary, [role='button'] {
+  touch-action: manipulation;
+}
+
+/* Los títulos van bien gruesos: DM Sans es una letra pareja, y sin
+   ese contraste de grosor un título se confunde con el texto. */
+h1, h2, h3 {
+  font-family: var(--fuente-titulo);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 0.4em;
+  text-wrap: balance;
+}
+h1 { font-size: var(--t-titulo); }
+h2 { font-size: var(--t-sub); }
+p  { margin: 0 0 0.8em; text-wrap: pretty; }
+
+img, svg { max-width: 100%; display: block; }
+
+/* ---------- FOCO VISIBLE ----------
+   Doble anillo, para que se vea sobre cualquier fondo. */
+:focus-visible {
+  outline: 4px solid var(--texto);
+  outline-offset: 3px;
+  border-radius: var(--radio-chico);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+/* ---------- SALTAR AL CONTENIDO (teclado) ---------- */
+.saltar {
+  position: absolute; left: 50%; top: -100px;
+  transform: translateX(-50%);
+  background: var(--texto); color: var(--blanco);
+  padding: 0.75rem 1.25rem; border-radius: 0 0 var(--radio) var(--radio);
+  z-index: 100; font-weight: 700; text-decoration: none;
+  transition: top var(--vel-rapida);
+}
+.saltar:focus { top: 0; }
+
+/* ---------- SOLO PARA LECTORES DE PANTALLA ---------- */
+.oculto-visual {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.pantalla {
+  /* Los dos renglones son a propósito. Los iPhone anteriores a
+     Safari 15.4 no entienden "dvh" y se quedan con el primero;
+     los demás usan el segundo, que descuenta la barra del navegador
+     cuando aparece y desaparece al hacer scroll. */
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex; flex-direction: column;
+  padding: max(0.75rem, env(safe-area-inset-top)) var(--sep)
+           max(1.25rem, env(safe-area-inset-bottom));
+  position: relative; isolation: isolate;
+  /* Los adornos que se salen por el costado (las nubes que cruzan la
+     portada, por ejemplo) se recortan en el borde de la pantalla. Sin
+     esto el celular queda con scroll horizontal y el chico puede
+     arrastrar la pantalla al costado y ver un vacío.
+     Va "clip" y no "hidden" para no convertir la pantalla en una caja
+     con scroll propio. */
+  overflow-x: clip;
+}
+.pantalla__cuerpo {
+  width: 100%; max-width: var(--ancho-max); margin: 0 auto;
+  flex: 1; display: flex; flex-direction: column; justify-content: center;
+  gap: var(--sep); padding-block: 0.5rem;
+}
+.pantalla__pie {
+  width: 100%; max-width: var(--ancho-max); margin: 0.75rem auto 0;
+  display: flex; flex-direction: column; gap: 0.6rem;
+}
+.centro { text-align: center; }
+
+/* Fondos por estación */
+.fondo-celeste  { background: linear-gradient(170deg, var(--celeste) 0%, var(--celeste-claro) 55%); }
+.fondo-amarillo { background: linear-gradient(170deg, var(--amarillo) 0%, var(--amarillo-claro) 55%); }
+.fondo-rosa     { background: linear-gradient(170deg, var(--rosa) 0%, var(--rosa-claro) 55%); }
+.fondo-blanco   { background: var(--blanco); }
+
+/* ============================================================
+   BOTONES
+   ============================================================ */
+.boton {
+  font-family: var(--fuente-titulo);
+  font-size: var(--t-cuerpo); font-weight: 700;
+  min-height: var(--toque-min);
+  padding: 0.85rem 1.5rem;
+  border: none; border-radius: var(--radio);
+  cursor: pointer; display: inline-flex; align-items: center;
+  justify-content: center; gap: 0.6rem; text-align: center;
+  text-decoration: none; width: 100%;
+  transition: transform var(--vel-rapida) var(--curva),
+              box-shadow var(--vel-rapida), background-color var(--vel-rapida);
+  touch-action: manipulation;
+}
+.boton--principal {
+  background: var(--rojo); color: var(--blanco);
+  box-shadow: 0 5px 0 var(--rojo-oscuro), 0 8px 18px var(--sombra);
+}
+.boton--principal:hover { background: #D93440; }
+.boton--principal:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--rojo-oscuro), 0 3px 8px var(--sombra);
+}
+.boton--suave {
+  background: var(--blanco); color: var(--texto);
+  box-shadow: 0 4px 0 var(--rosa-borde), 0 6px 14px var(--sombra);
+}
+.boton--suave:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--rosa-borde);
+}
+.boton--texto {
+  background: transparent; color: var(--texto);
+  text-decoration: underline; box-shadow: none;
+  font-family: var(--fuente-texto); font-weight: 600;
+  min-height: 48px; padding: 0.6rem 1rem;
+}
+.boton:disabled { opacity: 0.45; cursor: not-allowed; }
+.boton--auto { width: auto; }
+
+/* ============================================================
+   TARJETA DE DANI (globo de diálogo)
+   ============================================================ */
+.dani {
+  display: flex; gap: 0.85rem; align-items: flex-start;
+  background: var(--blanco); border-radius: var(--radio-grande);
+  padding: 1rem 1.15rem;
+  box-shadow: 0 6px 20px var(--sombra);
+  border: 3px solid var(--rosa);
+  position: relative;
+}
+.dani__avatar {
+  width: 54px; height: 54px; border-radius: 50%;
+  object-fit: cover; object-position: center 20%;
+  border: 3px solid var(--rosa); flex-shrink: 0; background: var(--rosa-claro);
+}
+.dani__texto { font-size: var(--t-cuerpo); margin: 0; }
+.dani__texto strong { color: var(--rojo); }
+
+/* ============================================================
+   TARJETAS DE OPCIÓN
+   ============================================================ */
+.opciones { display: grid; gap: 0.7rem; }
+.opciones--dos { grid-template-columns: repeat(2, 1fr); }
+.opciones--tres { grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); }
+
+.opcion {
+  font-family: var(--fuente-texto); font-size: var(--t-cuerpo);
+  font-weight: 600; color: var(--texto);
+  background: var(--blanco);
+  border: 3px solid var(--rosa-borde);
+  border-radius: var(--radio); padding: 0.9rem 1.1rem;
+  min-height: var(--toque-min); cursor: pointer;
+  display: flex; align-items: center; gap: 0.75rem;
+  text-align: left; width: 100%;
+  box-shadow: 0 4px 0 rgba(121,22,19,0.08);
+  transition: transform var(--vel-rapida) var(--curva),
+              border-color var(--vel-rapida), background-color var(--vel-rapida);
+  touch-action: manipulation;
+}
+.opcion:hover:not(:disabled) { border-color: var(--rojo); transform: translateY(-2px); }
+.opcion:active:not(:disabled) { transform: translateY(2px); }
+.opcion--elegida { border-color: var(--rojo); background: var(--rojo-suave); }
+.opcion--vertical { flex-direction: column; text-align: center; gap: 0.5rem; }
+.opcion:disabled { cursor: default; }
+
+/* Estados de respuesta — nunca comunicados solo por color:
+   siempre cambian también el ícono y el texto. */
+.opcion--acierto { border-color: var(--amarillo-borde); background: var(--amarillo-claro); }
+.opcion--otra    { border-color: var(--celeste-borde); background: var(--celeste-claro); }
+/* Apagada, pero no tanto: en el desafío se puede cambiar de opción,
+   así que las otras tienen que seguir pareciendo tocables. */
+.opcion--apagada { opacity: 0.72; }
+
+/* ============================================================
+   BLOQUE DE RESPUESTA
+   ============================================================ */
+.respuesta {
+  border-radius: var(--radio); padding: 1rem 1.15rem;
+  border: 3px solid; display: flex; gap: 0.8rem; align-items: flex-start;
+  animation: aparecer var(--vel) var(--curva);
+}
+
+/* El ícono del recuadro es un item flex: sin esto, flexbox se lo
+   achica cuando el texto es largo. Por eso se veía chiquito aunque
+   el dibujo pidiera otro tamaño. */
+.respuesta > svg { flex-shrink: 0; }
+.respuesta--acierto { background: var(--amarillo-claro); border-color: var(--amarillo-borde); }
+.respuesta--otra    { background: var(--celeste-claro);  border-color: var(--celeste-borde); }
+
+/* Donde el fondo de la pantalla ya es amarillo (la estación 1), el
+   recuadro amarillo no se despega. En esas pantallas va celeste.
+   Está escrito acá y no en cada juego para que valga siempre, aunque
+   mañana otra estación pase a tener fondo amarillo. */
+.fondo-amarillo .respuesta--acierto {
+  background: var(--celeste-claro);
+  border-color: var(--celeste-borde);
+}
+
+/* En las estaciones de fondo rosa (3 y 4) el recuadro amarillo queda
+   igual que la opción que se acaba de tocar, que también es amarilla.
+   Ahí va celeste, para que se lea como una respuesta y no como otro
+   botón elegido. */
+.fondo-rosa .respuesta--acierto {
+  background: var(--celeste-claro);
+  border-color: var(--celeste-borde);
+}
+
+/* Lo mismo al revés: donde el fondo es celeste (las estaciones 2 y 5),
+   el recuadro celeste del "¡Casi!" tampoco se despega. Ahí va rosa. */
+.fondo-celeste .respuesta--otra {
+  background: var(--rosa-claro);
+  border-color: var(--rosa-borde);
+}
+.respuesta__titulo {
+  font-family: var(--fuente-titulo); font-weight: 700;
+  font-size: var(--t-sub); margin: 0 0 0.2em;
+}
+.respuesta__texto { margin: 0; font-size: var(--t-cuerpo); }
+
+/* ============================================================
+   ESTRELLAS
+   ============================================================ */
+.contador {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: var(--blanco); border: 3px solid var(--amarillo-borde);
+  border-radius: 999px; padding: 0.35rem 0.9rem 0.35rem 0.6rem;
+  font-family: var(--fuente-titulo); font-weight: 600;
+  font-size: var(--t-chico); color: var(--texto);
+  box-shadow: 0 4px 12px var(--sombra);
+}
+.grilla-estrellas {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem; max-width: 320px; margin: 0 auto;
+}
+.grilla-estrellas svg { width: 100%; height: auto; }
+.estrella-apagada { opacity: 0.28; }
+
+/* ============================================================
+   ENCABEZADO
+   ============================================================ */
+.cabecera {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.75rem; width: 100%; max-width: var(--ancho-max);
+  margin: 0 auto 0.5rem; min-height: 48px;
+}
+.cabecera__volver {
+  background: var(--blanco); border: 3px solid var(--rosa-borde);
+  border-radius: 999px; width: 48px; height: 48px; flex-shrink: 0;
+  display: grid; place-items: center; cursor: pointer; color: var(--texto);
+  box-shadow: 0 3px 10px var(--sombra);
+}
+/* El nombre de la estación, arriba de todo y centrado. */
+.chapa-estacion {
+  text-align: center;
+  font-family: var(--fuente-titulo); font-weight: 600;
+  font-size: var(--t-chico); color: var(--texto);
+  margin: 0 0 0.15rem;
+}
+
+.paso {
+  font-family: var(--fuente-titulo); font-weight: 600;
+  font-size: var(--t-chico); color: var(--texto);
+  background: var(--blanco); border-radius: 999px;
+  padding: 0.3rem 0.9rem; border: 3px solid var(--celeste-borde);
+}
+
+/* ============================================================
+   ANIMACIONES
+   ============================================================ */
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes entrar {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---------- ENTRADA DE CADA PANTALLA ----------
+   La pantalla entra desde la derecha cuando avanzás en la aventura
+   y desde la izquierda cuando volvés al mapa. Es un detalle chico,
+   pero hace que el recorrido se sienta un viaje y no una sucesión
+   de pantallas sueltas. */
+@keyframes entrar-adelante {
+  from { opacity: 0; transform: translateX(34px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes entrar-atras {
+  from { opacity: 0; transform: translateX(-34px); }
+  to   { opacity: 1; transform: none; }
+}
+/* El Tesoro Nutri llega creciendo, como algo que se abre. */
+@keyframes entrar-celebracion {
+  0%   { opacity: 0; transform: scale(0.86); }
+  60%  { opacity: 1; transform: scale(1.03); }
+  100% { opacity: 1; transform: none; }
+}
+
+.entra-adelante    { animation: entrar-adelante var(--vel) var(--curva); }
+.entra-atras       { animation: entrar-atras var(--vel) var(--curva); }
+.entra-celebracion { animation: entrar-celebracion var(--vel-lenta) var(--curva); }
+@keyframes flotar {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-9px); }
+}
+@keyframes latir {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.09); }
+}
+@keyframes brillar {
+  0%, 100% { opacity: 0.35; transform: scale(0.85) rotate(0deg); }
+  50%      { opacity: 1;    transform: scale(1.1) rotate(18deg); }
+}
+.anim-entrar { animation: entrar var(--vel) var(--curva); }
+.anim-flotar { animation: flotar 4.5s ease-in-out infinite; }
+.anim-latir  { animation: latir 1.6s ease-in-out infinite; }
+
+/* ============================================================
+   TEXTURA DE PAPEL
+   ------------------------------------------------------------
+   Una capa de grano finísimo sobre toda la pantalla. Le saca a
+   los fondos el aspecto de color plano digital y les da algo de
+   calidez, como una lámina impresa.
+
+   Es un dibujo que genera el propio navegador, no un archivo:
+   no pesa nada. Va tan suave que no se lee como "ruido", solo
+   se nota si se saca.
+   ============================================================ */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  /* El grano ya viene negro y semitransparente, así que solo
+     oscurece. Evitamos "mix-blend-mode" a propósito: en Safari de
+     iPhone puede dar tirones al desplazar. */
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.14 0 0 0 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+
+/* ============================================================
+   DECORACIÓN DE FONDO
+   ============================================================ */
+.deco { position: absolute; z-index: -1; pointer-events: none; opacity: 0.85; }
+
+/* ============================================================
+   DIÁLOGO DE CONFIRMACIÓN
+   ============================================================ */
+.velo {
+  position: fixed; inset: 0; background: rgba(121,22,19,0.45);
+  display: grid; place-items: center; padding: var(--sep); z-index: 50;
+  animation: aparecer var(--vel-rapida);
+}
+.modal {
+  background: var(--blanco); border-radius: var(--radio-grande);
+  padding: 1.5rem; max-width: 420px; width: 100%;
+  box-shadow: 0 16px 44px var(--sombra-fuerte);
+  border: 4px solid var(--rosa);
+}
+
+/* ============================================================
+   CAMPO DE TEXTO (nombre)
+   ============================================================ */
+.campo {
+  font-family: var(--fuente-titulo); font-size: var(--t-sub);
+  font-weight: 600; color: var(--texto); text-align: center;
+  width: 100%; min-height: 64px; padding: 0.75rem 1rem;
+  border: 4px solid var(--rosa-borde); border-radius: var(--radio);
+  background: var(--blanco);
+}
+.campo::placeholder { color: var(--texto-suave); opacity: 0.6; font-weight: 500; }
+.campo:focus { border-color: var(--rojo); }
+
+@media (min-width: 720px) {
+  .opciones--tres { grid-template-columns: repeat(3, 1fr); }
+}

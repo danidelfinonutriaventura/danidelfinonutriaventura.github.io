@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#B3E5FC" />
+
+    <title>NutriAventura ★ Lic. Dani Delfino</title>
+    <meta
+      name="description"
+      content="Una aventura interactiva para chicos de 6 a 8 años: descubrir los alimentos, los sentidos y las señales del cuerpo. Por la Lic. Dani Delfino, Licenciada en Nutrición."
+    />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Ícono de la pestaña y de la pantalla de inicio del celular -->
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="64x64" href="./favicon-64.png" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+
+    <!-- ============================================================
+         VISTA PREVIA AL COMPARTIR EL LINK
+         Esto es lo que se ve cuando mandás la dirección por WhatsApp,
+         la ponés en Instagram o la pegás en cualquier lado: la imagen,
+         el título y la descripción.
+
+         La dirección ya está puesta:
+         https://rbd6c45vsw-cloud.github.io/nutriaventura/
+
+         Si algún día cambiás de dirección (por ejemplo, si comprás un
+         dominio propio), hay que reemplazarla en las TRES líneas de
+         abajo: og:url, og:image y twitter:image.
+         WhatsApp necesita la dirección completa: con una ruta
+         relativa muchas veces no muestra la imagen.
+         ============================================================ -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NutriAventura" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:title" content="NutriAventura ★ Lic. Dani Delfino" />
+    <meta
+      property="og:description"
+      content="Una aventura para descubrir los alimentos, los sentidos y las señales de tu cuerpo. Para chicos de 6 a 8 años."
+    />
+    <meta property="og:url" content="https://rbd6c45vsw-cloud.github.io/nutriaventura/" />
+    <meta property="og:image" content="https://rbd6c45vsw-cloud.github.io/nutriaventura/compartir.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="NutriAventura, de la Lic. Dani Delfino, con alimentos ilustrados" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="NutriAventura ★ Lic. Dani Delfino" />
+    <meta
+      name="twitter:description"
+      content="Una aventura para descubrir los alimentos, los sentidos y las señales de tu cuerpo. Para chicos de 6 a 8 años."
+    />
+    <meta name="twitter:image" content="https://rbd6c45vsw-cloud.github.io/nutriaventura/compartir.png" />
+
+    <!-- ============================================================
+         LOS ESTILOS
+         Cuatro archivos, en este orden:
+           tokens    -> la tipografía y todos los colores
+           base      -> lo que se repite en todas las pantallas
+           pantallas -> cada pantalla
+           juegos    -> cada juego
+         ============================================================ -->
+    <link rel="stylesheet" href="./css/tokens.css" />
+    <link rel="stylesheet" href="./css/base.css" />
+    <link rel="stylesheet" href="./css/pantallas.css" />
+    <link rel="stylesheet" href="./css/juegos.css" />
+  </head>
+
+  <body>
+    <div id="aventura"></div>
+
+    <!-- ============================================================
+         EL PROGRAMA
+         Son archivos de JavaScript común: no hay que instalar ni
+         compilar nada. El orden importa, porque cada uno usa lo que
+         cargaron los anteriores.
+
+         1. contenido      -> TODO lo editable: textos, alimentos,
+                              preguntas. Es lo que vas a tocar vos.
+         2. ilustraciones  -> los dibujos
+         3. nucleo         -> el progreso y las piezas repetidas
+         4. juegos         -> los siete juegos
+         5. pantallas      -> cada pantalla de la aventura
+         6. app            -> junta todo y la pone en marcha
+         ============================================================ -->
+
+    <!-- 1. CONTENIDO -->
+    <script src="./js/contenido/estrellas.js"></script>
+    <script src="./js/contenido/marca.js"></script>
+    <script src="./js/contenido/textos.js"></script>
+    <script src="./js/contenido/alimentos.js"></script>
+    <script src="./js/contenido/preguntas.js"></script>
+    <script src="./js/contenido/sentidos.js"></script>
+    <script src="./js/contenido/emociones.js"></script>
+    <script src="./js/contenido/hambre-saciedad.js"></script>
+    <script src="./js/contenido/memotest.js"></script>
+    <script src="./js/contenido/certificado.js"></script>
+    <script src="./js/contenido/desafio-semana.js"></script>
+
+    <!-- 2. ILUSTRACIONES -->
+    <script src="./js/ilustraciones/alimentos.js"></script>
+    <script src="./js/ilustraciones/escena.js"></script>
+    <script src="./js/ilustraciones/iconos.js"></script>
+
+    <!-- 3. NÚCLEO -->
+    <script src="./js/nucleo/estado.js"></script>
+    <script src="./js/nucleo/vista.js"></script>
+    <script src="./js/nucleo/estrellas.js"></script>
+
+    <!-- 4. JUEGOS -->
+    <script src="./js/juegos/arcoiris.js"></script>
+    <script src="./js/juegos/sentidos.js"></script>
+    <script src="./js/juegos/desafio.js"></script>
+    <script src="./js/juegos/rueda.js"></script>
+    <script src="./js/juegos/senales.js"></script>
+    <script src="./js/juegos/respiracion.js"></script>
+    <script src="./js/juegos/memotest.js"></script>
+
+    <!-- 5. PANTALLAS -->
+    <script src="./js/pantallas/portada.js"></script>
+    <script src="./js/pantallas/nombre.js"></script>
+    <script src="./js/pantallas/mapa.js"></script>
+    <script src="./js/pantallas/estacion.js"></script>
+    <script src="./js/pantallas/tesoro.js"></script>
+    <script src="./js/pantallas/certificado-imagen.js"></script>
+    <script src="./js/pantallas/certificado.js"></script>
+    <script src="./js/pantallas/desafio-semana.js"></script>
+    <script src="./js/pantallas/cierre.js"></script>
+    <script src="./js/pantallas/galeria.js"></script>
+
+    <!-- 6. EN MARCHA -->
+    <script src="./js/app.js"></script>
+  </body>
+</html>
