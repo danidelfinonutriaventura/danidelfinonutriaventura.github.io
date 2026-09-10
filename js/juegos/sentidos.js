@@ -4,113 +4,125 @@
    NO hay respuestas correctas ni incorrectas.
    Ninguna opción se marca como acertada, y "No sé todavía" vale
    exactamente igual que cualquier otra.
+
+   OJO SI TOCÁS ESTE ARCHIVO:
+   el alimento que flota se crea UNA vez y queda quieto en su lugar
+   durante las cinco preguntas. Si se lo volviera a crear en cada
+   toque, su animación de flotar empezaría de nuevo cada vez y el
+   dibujo pegaría un salto.
    ============================================================ */
 window.NA = window.NA || {}
 
 ;(function () {
   NA.juegoSentidos = function juegoSentidos(alTerminar) {
     const t = NA.textos.sentidos
-
-    let elegido = null
-    let paso = 0
-    let respuesta = null
-
     const caja = NA.h('div', { style: 'display:grid; gap:0.85rem' })
 
     /* ---------- Elegir el alimento ---------- */
-    function dibujarEleccion() {
-      NA.vaciar(caja)
-      NA.poner(caja, [
-        NA.h('h2', { class: 'centro' }, t.titulo),
-        NA.dani(t.elegir),
-        NA.h('p', { class: 'centro', style: 'font-size:var(--t-chico)' }, t.intro),
-        NA.h(
-          'div',
-          { class: 'opciones opciones--tres' },
-          NA.ALIMENTOS_SENTIDOS.map((id) =>
-            NA.h(
-              'button',
-              {
-                class: 'opcion opcion--vertical',
-                'aria-label': 'Explorar ' + NA.buscarAlimento(id).nombre,
-                alTocar: () => {
-                  elegido = id
-                  dibujarPaso()
-                },
-              },
-              [
-                NA.svg(NA.dibujoAlimento(id, 80, { informativo: false })),
-                NA.h('span', { style: 'text-transform: capitalize' }, NA.buscarAlimento(id).nombre),
-              ],
-            ),
+    NA.poner(caja, [
+      NA.h('h2', { class: 'centro' }, t.titulo),
+      NA.dani(t.elegir),
+      NA.h('p', { class: 'centro', style: 'font-size:var(--t-chico)' }, t.intro),
+      NA.h(
+        'div',
+        { class: 'opciones opciones--tres' },
+        NA.ALIMENTOS_SENTIDOS.map((id) =>
+          NA.h(
+            'button',
+            {
+              class: 'opcion opcion--vertical',
+              'aria-label': 'Explorar ' + NA.buscarAlimento(id).nombre,
+              alTocar: () => explorar(id),
+            },
+            [
+              NA.svg(NA.dibujoAlimento(id, 80, { informativo: false })),
+              NA.h('span', { style: 'text-transform: capitalize' }, NA.buscarAlimento(id).nombre),
+            ],
           ),
         ),
-      ])
-    }
+      ),
+    ])
 
     /* ---------- Las cinco preguntas ---------- */
-    function dibujarPaso() {
-      const actual = NA.PASOS_SENTIDOS[paso]
-      const ultimo = paso === NA.PASOS_SENTIDOS.length - 1
+    function explorar(elegido) {
+      let paso = 0
 
-      const siguiente = () => {
-        if (ultimo) return alTerminar()
-        paso += 1
-        respuesta = null
-        dibujarPaso()
-      }
+      /* Estas partes se crean una sola vez y sólo cambian de texto. */
+      const contador = NA.h('span', { class: 'paso' })
+      const pregunta = NA.h('h2', { class: 'sentidos__pregunta' })
+      const opciones = NA.h('div', { class: 'opciones' })
+      const final = NA.h('div', { style: 'display:grid; gap:0.85rem' })
 
       NA.vaciar(caja)
       NA.poner(caja, [
-        NA.h(
-          'div',
-          { class: 'centro' },
-          NA.h('span', { class: 'paso' }, paso + 1 + ' de ' + NA.PASOS_SENTIDOS.length),
-        ),
-
+        NA.h('div', { class: 'centro' }, contador),
         NA.h(
           'div',
           { class: 'sentidos__protagonista' },
           NA.svg(NA.dibujoAlimento(elegido, 180, { clase: 'anim-flotar' })),
         ),
-
-        NA.h('h2', { class: 'sentidos__pregunta' }, actual.pregunta),
-
-        NA.h(
-          'div',
-          { class: 'opciones' },
-          actual.opciones.map((opcion) =>
-            NA.h(
-              'button',
-              {
-                class: 'opcion' + (respuesta === opcion ? ' opcion--elegida' : ''),
-                'aria-pressed': respuesta === opcion ? 'true' : 'false',
-                alTocar: () => {
-                  respuesta = opcion
-                  dibujarPaso()
-                },
-              },
-              opcion,
-            ),
-          ),
-        ),
+        pregunta,
+        opciones,
+        final,
       ])
 
-      if (respuesta) {
-        const final = NA.h('div', { style: 'display:grid; gap:0.85rem' }, [
-          NA.h(
-            'div',
-            { class: 'respuesta respuesta--otra', role: 'status' },
-            NA.h('div', null, NA.h('p', { class: 'respuesta__texto' }, actual.respuestaDani)),
+      function mostrarPaso() {
+        const actual = NA.PASOS_SENTIDOS[paso]
+        const ultimo = paso === NA.PASOS_SENTIDOS.length - 1
+        let respuesta = null
+
+        contador.textContent = paso + 1 + ' de ' + NA.PASOS_SENTIDOS.length
+        pregunta.textContent = actual.pregunta
+        NA.vaciar(final)
+        NA.vaciar(opciones)
+
+        const botones = actual.opciones.map((opcion) => ({
+          opcion,
+          boton: NA.h(
+            'button',
+            { class: 'opcion', 'aria-pressed': 'false', alTocar: () => elegir(opcion) },
+            opcion,
           ),
-          NA.boton(NA.textos.comun.seguir, { alTocar: siguiente }),
-        ])
-        NA.poner(caja, final)
-        NA.llevarALaVista(final)
+        }))
+        NA.poner(
+          opciones,
+          botones.map((b) => b.boton),
+        )
+
+        function elegir(opcion) {
+          const primera = respuesta === null
+          respuesta = opcion
+          botones.forEach((b) => {
+            const activa = b.opcion === respuesta
+            b.boton.className = 'opcion' + (activa ? ' opcion--elegida' : '')
+            b.boton.setAttribute('aria-pressed', activa ? 'true' : 'false')
+          })
+
+          /* Lo que dice Dani es el mismo para cualquier opción: sin
+             juzgar la elección. Se pone la primera vez y listo. */
+          if (primera) {
+            NA.poner(final, [
+              NA.h(
+                'div',
+                { class: 'respuesta respuesta--otra', role: 'status' },
+                NA.h('div', null, NA.h('p', { class: 'respuesta__texto' }, actual.respuestaDani)),
+              ),
+              NA.boton(NA.textos.comun.seguir, {
+                alTocar: () => {
+                  if (ultimo) return alTerminar()
+                  paso += 1
+                  mostrarPaso()
+                },
+              }),
+            ])
+            NA.llevarALaVista(final)
+          }
+        }
       }
+
+      mostrarPaso()
     }
 
-    dibujarEleccion()
     return caja
   }
 })()

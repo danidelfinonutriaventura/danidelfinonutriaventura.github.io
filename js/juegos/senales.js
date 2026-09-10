@@ -7,6 +7,11 @@
      reconoce en su propio cuerpo.
    · No se habla de cantidades, ni del plato, ni de terminar la
      comida.
+
+   OJO SI TOCÁS ESTE ARCHIVO:
+   la pantalla se arma UNA vez y al marcar una señal sólo se le
+   cambia la clase a ese botón. Si se volviera a dibujar todo en
+   cada toque, la pantalla parpadearía.
    ============================================================ */
 window.NA = window.NA || {}
 
@@ -21,80 +26,66 @@ window.NA = window.NA || {}
        una sola y la respuesta se adelantaba. */
     let confirmado = false
 
-    const caja = NA.h('div', { style: 'display:grid; gap:0.85rem' })
+    const lugarBoton = NA.h('div')
+    const final = NA.h('div', { style: 'display:grid; gap:0.85rem' })
 
-    const alternar = (id) => {
+    const botones = bloque.senales.map((senal) => ({
+      id: senal.id,
+      boton: NA.h(
+        'button',
+        { class: 'opcion', 'aria-pressed': 'false', alTocar: () => alternar(senal.id) },
+        [NA.svg(NA.iconoSenal(senal.icono, 36)), NA.h('span', null, senal.texto)],
+      ),
+    }))
+
+    function alternar(id) {
       marcadas =
         marcadas.indexOf(id) !== -1 ? marcadas.filter((x) => x !== id) : marcadas.concat([id])
-      dibujar()
+
+      /* Sólo cambia el botón tocado. */
+      const b = botones.find((x) => x.id === id)
+      const activa = marcadas.indexOf(id) !== -1
+      b.boton.className = 'opcion' + (activa ? ' opcion--acierto' : '')
+      b.boton.setAttribute('aria-pressed', activa ? 'true' : 'false')
+
+      if (confirmado) return
+
+      if (marcadas.length === 0) {
+        NA.vaciar(lugarBoton)
+      } else if (!lugarBoton.firstChild) {
+        NA.poner(lugarBoton, NA.boton(NA.textos.senales.listo, { alTocar: confirmar }))
+        NA.llevarALaVista(lugarBoton)
+      }
     }
 
-    function dibujar() {
-      NA.vaciar(caja)
-
-      NA.poner(caja, [
-        NA.h('h2', { class: 'centro' }, bloque.titulo),
-        NA.dani(bloque.intro),
-        NA.h(
-          'p',
-          { class: 'centro', style: 'font-size:var(--t-chico); margin:0' },
-          bloque.consigna,
-        ),
-
+    function confirmar() {
+      confirmado = true
+      NA.vaciar(lugarBoton)
+      /* Celeste, como el resto de los recuadros de la aventura. El
+         amarillo estaba reservado para el "¡Muy bien!" del desafío, y
+         acá no hay respuestas correctas. */
+      NA.poner(final, [
         NA.h(
           'div',
-          { class: 'opciones' },
-          bloque.senales.map((senal) => {
-            const activa = marcadas.indexOf(senal.id) !== -1
-            return NA.h(
-              'button',
-              {
-                class: 'opcion' + (activa ? ' opcion--acierto' : ''),
-                'aria-pressed': activa ? 'true' : 'false',
-                alTocar: () => alternar(senal.id),
-              },
-              [
-                NA.svg(NA.iconoSenal(senal.icono, 36)),
-                NA.h('span', null, senal.texto),
-              ],
-            )
-          }),
+          { class: 'respuesta respuesta--otra', role: 'status' },
+          NA.h('div', null, NA.h('p', { class: 'respuesta__texto' }, bloque.cierre)),
         ),
+        NA.boton(NA.textos.comun.seguir, { alTocar: alTerminar }),
       ])
-
-      if (marcadas.length > 0 && !confirmado) {
-        const paso = NA.h(
-          'div',
-          null,
-          NA.boton(NA.textos.senales.listo, {
-            alTocar: () => {
-              confirmado = true
-              dibujar()
-            },
-          }),
-        )
-        NA.poner(caja, paso)
-        if (marcadas.length === 1) NA.llevarALaVista(paso)
-      }
-
-      if (confirmado) {
-        /* Celeste, como el resto de los recuadros de la aventura.
-           El amarillo estaba reservado para el "¡Muy bien!" del
-           desafío, y acá no hay respuestas correctas. */
-        const final = NA.h('div', { style: 'display:grid; gap:0.85rem' }, [
-          NA.h(
-            'div',
-            { class: 'respuesta respuesta--otra', role: 'status' },
-            NA.h('div', null, NA.h('p', { class: 'respuesta__texto' }, bloque.cierre)),
-          ),
-          NA.boton(NA.textos.comun.seguir, { alTocar: alTerminar }),
-        ])
-        NA.poner(caja, final)
-        NA.llevarALaVista(final)
-      }
+      NA.llevarALaVista(final)
     }
 
-    dibujar()
-    return caja
+    return NA.h('div', { style: 'display:grid; gap:0.85rem' }, [
+      NA.h('h2', { class: 'centro' }, bloque.titulo),
+      NA.dani(bloque.intro),
+      NA.h('p', { class: 'centro', style: 'font-size:var(--t-chico); margin:0' }, bloque.consigna),
+      NA.h(
+        'div',
+        { class: 'opciones' },
+        botones.map((b) => b.boton),
+      ),
+      lugarBoton,
+      final,
+    ])
   }
 })()

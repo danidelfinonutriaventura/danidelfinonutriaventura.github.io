@@ -8,6 +8,11 @@
    · Nunca se bloquea el avance.
    · Se puede cambiar de opción: si el chico se arrepiente, toca
      otra y la respuesta cambia. La estrella se da igual, una vez.
+
+   OJO SI TOCÁS ESTE ARCHIVO:
+   cada pregunta se arma UNA vez. Al tocar una opción sólo cambian
+   las clases de los botones y el recuadro de abajo. Si se volviera
+   a dibujar la pregunta entera en cada toque, parpadearía.
    ============================================================ */
 window.NA = window.NA || {}
 
@@ -37,79 +42,55 @@ window.NA = window.NA || {}
     })
 
     let indice = 0
-    let elegida = null
-
     const caja = NA.h('div', { style: 'display:grid; gap:0.85rem' })
 
-    /* Se puede cambiar de opción todas las veces que quiera: la
-       respuesta de Dani se actualiza sola. La estrella ya está dada
-       desde el primer toque y no se vuelve a dar. */
-    const responder = (i) => {
-      if (i === elegida) return
-      elegida = i
-      alResponder(preguntas[indice].id)
-      dibujar()
-    }
-
-    const siguiente = () => {
-      if (indice === preguntas.length - 1) return alTerminar()
-      indice += 1
-      elegida = null
-      dibujar()
-    }
-
-    function dibujar() {
+    function mostrarPregunta() {
       const pregunta = preguntas[indice]
       const ultima = indice === preguntas.length - 1
-      const acerto = elegida === pregunta.correcta
       const visual = pregunta.formato === 'visual'
+      let elegida = null
 
-      NA.vaciar(caja)
+      const lugarRespuesta = NA.h('div')
+      const final = NA.h('div', { style: 'display:grid; gap:0.85rem' })
 
-      NA.poner(caja, [
+      const botones = pregunta.opciones.map((opcion, i) =>
         NA.h(
-          'div',
-          { class: 'centro' },
-          NA.h(
-            'span',
-            { class: 'paso' },
-            t.paso
-              .replace('{actual}', String(indice + 1))
-              .replace('{total}', String(preguntas.length)),
-          ),
+          'button',
+          {
+            class: 'opcion' + (visual ? ' opcion--vertical' : ''),
+            alTocar: () => responder(i),
+          },
+          [
+            opcion.alimento
+              ? NA.svg(NA.dibujoAlimento(opcion.alimento, 84, { informativo: false }))
+              : null,
+            NA.h('span', null, opcion.texto),
+          ],
         ),
+      )
 
-        NA.h('h2', { class: 'centro' }, pregunta.enunciado),
+      /* Se puede cambiar de opción todas las veces que quiera: la
+         respuesta de Dani se actualiza sola. La estrella ya está dada
+         desde el primer toque y no se vuelve a dar. */
+      function responder(i) {
+        if (i === elegida) return
+        const primera = elegida === null
+        elegida = i
+        alResponder(pregunta.id)
 
-        NA.h(
-          'div',
-          { class: 'opciones' + (visual ? ' opciones--tres' : '') },
-          pregunta.opciones.map((opcion, i) => {
-            let extra = ''
-            if (elegida !== null) {
-              if (i === pregunta.correcta) extra = ' opcion--acierto'
-              else if (i === elegida) extra = ' opcion--otra'
-              else extra = ' opcion--apagada'
-            }
-            return NA.h(
-              'button',
-              {
-                class: 'opcion' + (visual ? ' opcion--vertical' : '') + extra,
-                alTocar: () => responder(i),
-              },
-              [
-                opcion.alimento
-                  ? NA.svg(NA.dibujoAlimento(opcion.alimento, 84, { informativo: false }))
-                  : null,
-                NA.h('span', null, opcion.texto),
-              ],
-            )
-          }),
-        ),
-      ])
+        const acerto = elegida === pregunta.correcta
 
-      if (elegida !== null) {
-        const final = NA.h('div', { style: 'display:grid; gap:0.85rem' }, [
+        botones.forEach((boton, j) => {
+          let extra = ''
+          if (j === pregunta.correcta) extra = ' opcion--acierto'
+          else if (j === elegida) extra = ' opcion--otra'
+          else extra = ' opcion--apagada'
+          boton.className = 'opcion' + (visual ? ' opcion--vertical' : '') + extra
+        })
+
+        NA.vaciar(lugarRespuesta)
+        NA.poner(
+          lugarRespuesta,
           NA.h(
             'div',
             {
@@ -130,14 +111,44 @@ window.NA = window.NA || {}
               ]),
             ],
           ),
-          NA.boton(ultima ? t.terminar : t.siguiente, { alTocar: siguiente }),
-        ])
-        NA.poner(caja, final)
-        NA.llevarALaVista(final)
+        )
+
+        if (primera) {
+          NA.poner(final, [
+            lugarRespuesta,
+            NA.boton(ultima ? t.terminar : t.siguiente, {
+              alTocar: () => {
+                if (ultima) return alTerminar()
+                indice += 1
+                mostrarPregunta()
+                window.scrollTo({ top: 0, behavior: 'auto' })
+              },
+            }),
+          ])
+          NA.llevarALaVista(final)
+        }
       }
+
+      NA.vaciar(caja)
+      NA.poner(caja, [
+        NA.h(
+          'div',
+          { class: 'centro' },
+          NA.h(
+            'span',
+            { class: 'paso' },
+            t.paso
+              .replace('{actual}', String(indice + 1))
+              .replace('{total}', String(preguntas.length)),
+          ),
+        ),
+        NA.h('h2', { class: 'centro' }, pregunta.enunciado),
+        NA.h('div', { class: 'opciones' + (visual ? ' opciones--tres' : '') }, botones),
+        final,
+      ])
     }
 
-    dibujar()
+    mostrarPregunta()
     return caja
   }
 })()

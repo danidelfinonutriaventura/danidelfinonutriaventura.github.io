@@ -5,7 +5,6 @@
    alimento para explorar durante la semana.
 
    Cómo funciona por dentro:
-   · La conversación es una lista de mensajes que va creciendo.
    · Antes de cada mensaje de Dani se muestran los tres puntitos
      durante un segundo y medio, como cuando alguien escribe.
    · Al tocar una opción, los botones desaparecen y la respuesta
@@ -14,6 +13,12 @@
    · Cada mensaje lleva la hora, como en un chat de verdad.
    · No hay respuestas correctas: las cinco preguntas son de
      gusto. Por eso esta pantalla no da estrellas.
+
+   OJO SI TOCÁS ESTE ARCHIVO:
+   los globos entran con una animación de CSS. Cada mensaje nuevo
+   se AGREGA al final; nunca se vuelve a dibujar la conversación
+   entera. Si se redibujara, todos los globos repetirían su
+   animación de entrada cada vez y el chat parecería trabarse.
 
    Todo el texto está en js/contenido/desafio-semana.js.
    ============================================================ */
@@ -37,367 +42,289 @@ window.NA = window.NA || {}
     <path d="M1 6.6L4.2 10 10.6 2.2M8.4 6.6L11.6 10 18 2.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
   </svg>`
 
+  const AVION = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M3 20l18-8L3 4l4 8z" fill="currentColor"/></svg>`
+
   NA.pantallaDesafioSemana = function pantallaDesafioSemana() {
     const CHAT = NA.CHAT
 
-    /* Lo que va cambiando durante la charla. */
-    let mensajes = []
-    let escribiendo = true
-    let turno = 'nada' // nada | animo | textura | color | compania | primero
-    let borrador = null // lo que se ve escribiéndose en la barra de abajo
+    let ultimoDe = null // de quién fue el mensaje anterior, para el avatar
     let textura = null
     let alimento = null
-    let terminado = false
-    /** La compañía elegida, guardada para armar la frase del final. */
     let compania = ''
-
     const relojes = []
-    const caja = NA.h('div')
-    let hilo = null // la caja de la conversación, para llevarla al final
 
-    const agregar = (m) => {
-      m.hora = horaActual()
-      mensajes = mensajes.concat([m])
+    /* ------------------------------------------------------------
+       La pantalla se arma UNA vez.
+       ------------------------------------------------------------ */
+    const estado = NA.h('p', { class: 'chat__estado' }, CHAT ? NA.CABECERA.estado : '')
+
+    const hilo = NA.h('div', {
+      class: 'chat__hilo',
+      role: 'log',
+      'aria-live': 'polite',
+      'aria-label': 'Conversación con Dani',
+    })
+
+    const barra = NA.h('div') // acá va la barra de tipeo o los botones
+    const pie = NA.h('div') // acá va el botón SEGUIR
+
+    const chat = NA.h('div', { class: 'chat' }, [
+      NA.h('header', { class: 'chat__cabecera' }, [
+        NA.h('img', { class: 'chat__foto', src: 'assets/dani.jpg', alt: '', 'aria-hidden': 'true' }),
+        NA.h('div', null, [NA.h('p', { class: 'chat__nombre' }, NA.CABECERA.nombre), estado]),
+      ]),
+      hilo,
+      barra,
+    ])
+
+    const caja = NA.pantalla([chat, pie], {
+      titulo: 'Charlando con la Nutri',
+      fondo: 'celeste',
+    })
+
+    /** Lleva la conversación al último mensaje, sin mover la página. */
+    function alFinal() {
+      requestAnimationFrame(() => {
+        if (hilo.isConnected) hilo.scrollTop = hilo.scrollHeight
+      })
     }
 
-    /* Agenda un mensaje de Dani: primero los puntitos, después el texto. */
-    function escribir(id, texto, despues) {
-      escribiendo = true
-      dibujar()
+    /** El avatar: sólo en el primero de cada tanda, como en un chat real. */
+    function avatarDe(de) {
+      const primero = ultimoDe !== de
+      if (!primero) {
+        return NA.h('span', { class: 'chat__avatar chat__avatar--hueco', 'aria-hidden': 'true' })
+      }
+      return de === 'dani'
+        ? NA.h('img', {
+            class: 'chat__avatar',
+            src: 'assets/dani.jpg',
+            alt: '',
+            'aria-hidden': 'true',
+          })
+        : NA.h('span', {
+            class: 'chat__avatar chat__avatar--frutilla',
+            'aria-hidden': 'true',
+            html: NA.icono.frutillaSello(22),
+          })
+    }
+
+    /** Agrega un mensaje al final. Nunca redibuja los anteriores. */
+    function agregar(de, contenido) {
+      const linea = NA.h('div', { class: 'chat__linea chat__linea--' + de })
+      if (de === 'dani') linea.appendChild(avatarDe(de))
+      linea.appendChild(contenido)
+      if (de === 'chico') linea.appendChild(avatarDe(de))
+      ultimoDe = de
+      hilo.appendChild(linea)
+      alFinal()
+    }
+
+    /** Un globo de texto, con su hora. */
+    function globo(de, texto) {
+      const hora = NA.h('span', { class: 'chat__hora' }, horaActual())
+      if (de === 'chico') NA.poner(hora, NA.svg(ENVIADO))
+      return NA.h('div', { class: 'chat__globo chat__globo--' + de }, [
+        document.createTextNode(texto),
+        hora,
+      ])
+    }
+
+    /* ------------------------------------------------------------
+       Los puntitos de "Dani está escribiendo"
+       ------------------------------------------------------------ */
+    let puntitos = null
+
+    function mostrarPuntitos() {
+      if (puntitos) return
+      estado.textContent = NA.CABECERA.estadoEscribiendo
+      puntitos = NA.h('div', { class: 'chat__linea chat__linea--dani' }, [
+        NA.h('span', { class: 'chat__avatar chat__avatar--hueco', 'aria-hidden': 'true' }),
+        NA.h(
+          'div',
+          {
+            class: 'chat__globo chat__globo--dani chat__puntos',
+            'aria-label': 'Dani está escribiendo',
+          },
+          [NA.h('span'), NA.h('span'), NA.h('span')],
+        ),
+      ])
+      hilo.appendChild(puntitos)
+      alFinal()
+    }
+
+    function sacarPuntitos() {
+      if (puntitos) puntitos.remove()
+      puntitos = null
+      estado.textContent = NA.CABECERA.estado
+    }
+
+    /** Dani escribe un mensaje: primero los puntitos, después el texto. */
+    function escribir(texto, despues) {
+      mostrarPuntitos()
       relojes.push(
         window.setTimeout(() => {
           if (!caja.isConnected) return
-          escribiendo = false
-          agregar({ id: id, de: 'dani', texto: texto })
-          dibujar()
+          sacarPuntitos()
+          agregar('dani', globo('dani', texto))
           if (despues) despues()
         }, ESCRIBIENDO),
       )
     }
 
-    /* La respuesta del chico se escribe sola en la barra de abajo y
-       recién después sale como globo. */
-    function responder(id, etiqueta, despues) {
-      turno = 'nada'
+    /* ------------------------------------------------------------
+       Las opciones y el tipeo del chico
+       ------------------------------------------------------------ */
+
+    /** Muestra los botones para elegir. */
+    function preguntar(lista, clase, alElegir) {
+      NA.vaciar(barra)
+      const caja = NA.h('div', { class: 'chat__opciones' + (clase ? ' ' + clase : '') })
+      for (const o of lista) {
+        caja.appendChild(
+          NA.h(
+            'button',
+            {
+              class: 'chat__opcion' + (o.tono ? ' chat__opcion--color' : ''),
+              style: o.tono ? 'border-color: ' + o.tono : null,
+              alTocar: () => alElegir(o),
+            },
+            [
+              o.tono
+                ? NA.h('span', {
+                    class: 'chat__punto',
+                    style: 'background: ' + o.tono,
+                    'aria-hidden': 'true',
+                  })
+                : null,
+              document.createTextNode(o.etiqueta),
+            ],
+          ),
+        )
+      }
+      barra.appendChild(caja)
+      alFinal()
+    }
+
+    /** La respuesta se escribe sola en la barra y después sale como globo. */
+    function responder(etiqueta, despues) {
+      NA.vaciar(barra)
+
+      const campo = NA.h('span', { class: 'chat__campo' })
+      const cursor = NA.h('span', { class: 'chat__cursor' })
+      const letras = document.createTextNode('')
+      NA.poner(campo, [letras, cursor])
+
+      barra.appendChild(
+        NA.h('div', { class: 'chat__barra', 'aria-hidden': 'true' }, [
+          campo,
+          NA.h('span', { class: 'chat__enviar', html: AVION }),
+        ]),
+      )
 
       const enviar = () => {
         if (!caja.isConnected) return
-        borrador = null
-        agregar({ id: id, de: 'chico', texto: etiqueta })
-        dibujar()
+        NA.vaciar(barra)
+        agregar('chico', globo('chico', etiqueta))
         despues()
       }
 
       if (menosMovimiento()) {
-        borrador = etiqueta
-        dibujar()
+        letras.nodeValue = etiqueta
         relojes.push(window.setTimeout(enviar, 500))
         return
       }
 
-      borrador = ''
-      dibujar()
-      let letras = 0
+      let n = 0
       const tipear = () => {
         if (!caja.isConnected) return
-        letras += 2
-        borrador = etiqueta.slice(0, letras)
-        dibujar()
+        n += 2
+        letras.nodeValue = etiqueta.slice(0, n)
         relojes.push(
-          window.setTimeout(
-            letras < etiqueta.length ? tipear : enviar,
-            letras < etiqueta.length ? TECLA : 340,
-          ),
+          window.setTimeout(n < etiqueta.length ? tipear : enviar, n < etiqueta.length ? TECLA : 340),
         )
       }
       relojes.push(window.setTimeout(tipear, 140))
     }
 
-    /* --- Las cinco respuestas --- */
-
-    const responderAnimo = (etiqueta) =>
-      responder('r1', etiqueta, () =>
-        escribir('p2', CHAT.pregunta2, () => {
-          turno = 'textura'
-          dibujar()
-        }),
-      )
-
-    const responderTextura = (id, etiqueta) => {
-      textura = id
-      responder('r2', etiqueta, () =>
-        escribir('p3', CHAT.pregunta3, () => {
-          turno = 'color'
-          dibujar()
-        }),
+    /* ------------------------------------------------------------
+       El guion de la charla
+       ------------------------------------------------------------ */
+    function pregunta1() {
+      preguntar(NA.ANIMOS, '', (o) =>
+        responder(o.etiqueta, () => escribir(CHAT.pregunta2, pregunta2)),
       )
     }
 
-    const responderColor = (id, etiqueta) => {
-      const elegido = NA.CRUCE[id][textura || 'crujiente']
-      responder('r3', etiqueta, () =>
-        escribir('resultado', CHAT.resultado, () => {
-          /* El dibujo entra justo debajo del mensaje, no al final. */
-          agregar({ id: 'alimento', de: 'dani', alimento: elegido })
-          alimento = elegido
-          dibujar()
-          escribir('p4', CHAT.pregunta4, () => {
-            turno = 'compania'
-            dibujar()
-          })
-        }),
-      )
+    function pregunta2() {
+      preguntar(NA.TEXTURAS, '', (o) => {
+        textura = o.id
+        responder(o.etiqueta, () => escribir(CHAT.pregunta3, pregunta3))
+      })
     }
 
-    const responderCompania = (etiqueta, frase) =>
-      responder('r4', etiqueta, () => {
-        compania = frase
-        escribir('p5', CHAT.pregunta5, () => {
-          turno = 'primero'
-          dibujar()
-        })
-      })
-
-    const responderPrimero = (etiqueta, frase) =>
-      responder('r5', etiqueta, () => {
-        const cierre = CHAT.despedida
-          .replace('{conQuien}', compania)
-          .replace('{primero}', frase)
-        escribir('despedida', cierre, () => {
-          escribir('final', CHAT.despedidaFinal, () => {
-            escribir('suerte', NA.conNombre(CHAT.cierre, CHAT.cierreSinNombre), () => {
-              terminado = true
-              dibujar()
-            })
-          })
-        })
-      })
-
-    /* El avatar sólo aparece en el primer mensaje de cada tanda, como
-       en un chat de verdad: el de Dani a la izquierda y la frutilla
-       del chico a la derecha. */
-    const conAvatar = (i) => !mensajes[i - 1] || mensajes[i - 1].de !== mensajes[i].de
-
-    /** Un botón de opción. */
-    const opcion = (etiqueta, alTocar, extra, punto) =>
-      NA.h(
-        'button',
-        {
-          class: 'chat__opcion' + (extra ? ' ' + extra.clase : ''),
-          style: extra ? 'border-color: ' + extra.tono : null,
-          alTocar: alTocar,
-        },
-        [
-          punto
-            ? NA.h('span', {
-                class: 'chat__punto',
-                style: 'background: ' + punto,
-                'aria-hidden': 'true',
-              })
-            : null,
-          document.createTextNode(etiqueta),
-        ],
-      )
-
-    function dibujar() {
-      NA.vaciar(caja)
-
-      /* ---------- La conversación ---------- */
-      hilo = NA.h('div', {
-        class: 'chat__hilo',
-        role: 'log',
-        'aria-live': 'polite',
-        'aria-label': 'Conversación con Dani',
-      })
-
-      mensajes.forEach((m, i) => {
-        const linea = NA.h('div', { class: 'chat__linea chat__linea--' + m.de })
-
-        if (m.de === 'dani') {
-          linea.appendChild(
-            conAvatar(i)
-              ? NA.h('img', {
-                  class: 'chat__avatar',
-                  src: 'assets/dani.jpg',
-                  alt: '',
-                  'aria-hidden': 'true',
-                })
-              : NA.h('span', { class: 'chat__avatar chat__avatar--hueco', 'aria-hidden': 'true' }),
-          )
-        }
-
-        if (m.alimento) {
-          linea.appendChild(
-            NA.h('div', { class: 'chat__globo chat__globo--dani chat__premio' }, [
-              NA.svg(NA.dibujoAlimento(m.alimento, 132)),
-              NA.h('p', { class: 'chat__alimento' }, '¡' + NA.buscarAlimento(m.alimento).nombre + '!'),
-              NA.h('span', { class: 'chat__hora' }, m.hora),
-            ]),
-          )
-        } else {
-          const hora = NA.h('span', { class: 'chat__hora' }, m.hora)
-          if (m.de === 'chico') NA.poner(hora, NA.svg(ENVIADO))
-          linea.appendChild(
-            NA.h('div', { class: 'chat__globo chat__globo--' + m.de }, [
-              document.createTextNode(m.texto),
-              hora,
-            ]),
-          )
-        }
-
-        if (m.de === 'chico') {
-          linea.appendChild(
-            conAvatar(i)
-              ? NA.h('span', {
-                  class: 'chat__avatar chat__avatar--frutilla',
-                  'aria-hidden': 'true',
-                  html: NA.icono.frutillaSello(22),
-                })
-              : NA.h('span', { class: 'chat__avatar chat__avatar--hueco', 'aria-hidden': 'true' }),
-          )
-        }
-
-        hilo.appendChild(linea)
-      })
-
-      if (escribiendo) {
-        hilo.appendChild(
-          NA.h('div', { class: 'chat__linea chat__linea--dani' }, [
-            NA.h('span', { class: 'chat__avatar chat__avatar--hueco', 'aria-hidden': 'true' }),
-            NA.h(
-              'div',
-              {
-                class: 'chat__globo chat__globo--dani chat__puntos',
-                'aria-label': 'Dani está escribiendo',
-              },
-              [NA.h('span'), NA.h('span'), NA.h('span')],
-            ),
-          ]),
-        )
-      }
-
-      /* ---------- El armado de la pantalla ---------- */
-      const chat = NA.h('div', { class: 'chat' }, [
-        NA.h('header', { class: 'chat__cabecera' }, [
-          NA.h('img', {
-            class: 'chat__foto',
-            src: 'assets/dani.jpg',
-            alt: '',
-            'aria-hidden': 'true',
+    function pregunta3() {
+      preguntar(NA.COLORES, 'chat__opciones--colores', (o) => {
+        const elegido = NA.CRUCE[o.id][textura || 'crujiente']
+        responder(o.etiqueta, () =>
+          escribir(CHAT.resultado, () => {
+            /* El dibujo entra justo debajo del mensaje, no al final. */
+            const premio = NA.h('div', { class: 'chat__globo chat__globo--dani chat__premio' }, [
+              NA.svg(NA.dibujoAlimento(elegido, 132)),
+              NA.h('p', { class: 'chat__alimento' }, '¡' + NA.buscarAlimento(elegido).nombre + '!'),
+              NA.h('span', { class: 'chat__hora' }, horaActual()),
+            ])
+            agregar('dani', premio)
+            alimento = elegido
+            escribir(CHAT.pregunta4, pregunta4)
           }),
-          NA.h('div', null, [
-            NA.h('p', { class: 'chat__nombre' }, NA.CABECERA.nombre),
-            NA.h(
-              'p',
-              { class: 'chat__estado' },
-              escribiendo ? NA.CABECERA.estadoEscribiendo : NA.CABECERA.estado,
-            ),
-          ]),
-        ]),
-        hilo,
-      ])
-
-      /* Mientras la respuesta se escribe sola, la barra de abajo
-         muestra lo que se está tipeando. */
-      if (borrador !== null) {
-        chat.appendChild(
-          NA.h('div', { class: 'chat__barra', 'aria-hidden': 'true' }, [
-            NA.h('span', { class: 'chat__campo' }, [
-              document.createTextNode(borrador),
-              NA.h('span', { class: 'chat__cursor' }),
-            ]),
-            NA.h('span', {
-              class: 'chat__enviar',
-              html: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M3 20l18-8L3 4l4 8z" fill="currentColor"/></svg>',
-            }),
-          ]),
         )
-      }
-
-      /* Las opciones viven fuera del hilo y desaparecen al elegir. */
-      if (turno === 'animo') {
-        chat.appendChild(
-          NA.h(
-            'div',
-            { class: 'chat__opciones' },
-            NA.ANIMOS.map((a) => opcion(a.etiqueta, () => responderAnimo(a.etiqueta))),
-          ),
-        )
-      } else if (turno === 'textura') {
-        chat.appendChild(
-          NA.h(
-            'div',
-            { class: 'chat__opciones' },
-            NA.TEXTURAS.map((t) => opcion(t.etiqueta, () => responderTextura(t.id, t.etiqueta))),
-          ),
-        )
-      } else if (turno === 'color') {
-        chat.appendChild(
-          NA.h(
-            'div',
-            { class: 'chat__opciones chat__opciones--colores' },
-            NA.COLORES.map((c) =>
-              opcion(
-                c.etiqueta,
-                () => responderColor(c.id, c.etiqueta),
-                { clase: 'chat__opcion--color', tono: c.tono },
-                c.tono,
-              ),
-            ),
-          ),
-        )
-      } else if (turno === 'compania') {
-        chat.appendChild(
-          NA.h(
-            'div',
-            { class: 'chat__opciones' },
-            NA.COMPANIA.map((c) => opcion(c.etiqueta, () => responderCompania(c.etiqueta, c.frase))),
-          ),
-        )
-      } else if (turno === 'primero') {
-        chat.appendChild(
-          NA.h(
-            'div',
-            { class: 'chat__opciones chat__opciones--colores' },
-            NA.PRIMEROS.map((p) => opcion(p.etiqueta, () => responderPrimero(p.etiqueta, p.frase))),
-          ),
-        )
-      }
-
-      /* Al terminar volvemos al mapa: ahí se ve abrirse el cofre. */
-      const seguir =
-        terminado && alimento
-          ? NA.boton(CHAT.boton, {
-              alTocar: () => {
-                while (relojes.length) window.clearTimeout(relojes.pop())
-                NA.despachar({ tipo: 'completarDesafio' })
-                NA.despachar({ tipo: 'volverAlMapa' })
-              },
-            })
-          : null
-
-      NA.poner(
-        caja,
-        NA.pantalla([chat, seguir], { titulo: 'Charlando con la Nutri', fondo: 'celeste' }),
-      )
-
-      /* La conversación se desplaza sola dentro del hilo, sin mover la
-         página: así la cabecera y la barra de abajo quedan siempre
-         fijas, como en un chat de verdad. Esperamos un cuadro para que
-         el dibujo del alimento ya ocupe su lugar; si no, medimos el
-         alto viejo y el último mensaje queda fuera de la vista. */
-      requestAnimationFrame(() => {
-        if (hilo && hilo.isConnected) hilo.scrollTop = hilo.scrollHeight
       })
+    }
+
+    function pregunta4() {
+      preguntar(NA.COMPANIA, '', (o) =>
+        responder(o.etiqueta, () => {
+          compania = o.frase
+          escribir(CHAT.pregunta5, pregunta5)
+        }),
+      )
+    }
+
+    function pregunta5() {
+      preguntar(NA.PRIMEROS, 'chat__opciones--colores', (o) =>
+        responder(o.etiqueta, () => {
+          const cierre = CHAT.despedida
+            .replace('{conQuien}', compania)
+            .replace('{primero}', o.frase)
+          escribir(cierre, () =>
+            escribir(CHAT.despedidaFinal, () =>
+              escribir(NA.conNombre(CHAT.cierre, CHAT.cierreSinNombre), terminar),
+            ),
+          )
+        }),
+      )
+    }
+
+    /* Al terminar volvemos al mapa: ahí se ve abrirse el cofre. */
+    function terminar() {
+      if (!alimento) return
+      NA.poner(
+        pie,
+        NA.boton(CHAT.boton, {
+          alTocar: () => {
+            while (relojes.length) window.clearTimeout(relojes.pop())
+            NA.despachar({ tipo: 'completarDesafio' })
+            NA.despachar({ tipo: 'volverAlMapa' })
+          },
+        }),
+      )
     }
 
     /* Arranque: el saludo y, enseguida, la primera pregunta. */
-    escribir('saludo', NA.conNombre(CHAT.saludo, CHAT.saludoSinNombre), () => {
-      escribir('p1', CHAT.pregunta1, () => {
-        turno = 'animo'
-        dibujar()
-      })
-    })
+    escribir(NA.conNombre(CHAT.saludo, CHAT.saludoSinNombre), () =>
+      escribir(CHAT.pregunta1, pregunta1),
+    )
 
     return caja
   }

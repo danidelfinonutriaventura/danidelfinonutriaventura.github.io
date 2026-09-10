@@ -11,6 +11,12 @@
    van botones HTML de verdad. Los elementos SVG con rol de botón
    no son fiables con teclado ni en Safari de iPhone, y esta
    experiencia se usa sobre todo en celular.
+
+   OJO SI TOCÁS ESTE ARCHIVO:
+   la rueda se arma UNA sola vez. Al tocar una emoción sólo se le
+   cambia la clase a la porción y a la palabra elegidas: así se
+   agrandan con su transición. Si se volviera a dibujar la rueda
+   entera en cada toque, saltarían de golpe y se vería trabado.
    ============================================================ */
 window.NA = window.NA || {}
 
@@ -68,88 +74,100 @@ window.NA = window.NA || {}
       }
     })
 
-    const caja = NA.h('div', { style: 'display:grid; gap:0.85rem' })
-
-    function dibujar() {
-      const emocion = gajos.find((g) => g.id === elegida)
-      NA.vaciar(caja)
-
-      /* Las porciones, como una pizza: se juntan en el centro sin
-         nada en el medio. */
-      const porciones = gajos
+    /* Las porciones, como una pizza: se juntan en el centro sin nada
+       en el medio. */
+    const dibujo = NA.svg(
+      `<svg class="rueda__dibujo" viewBox="0 0 ${LADO} ${LADO}" aria-hidden="true" focusable="false">${gajos
         .map(
           (g) =>
-            `<path class="rueda__gajo${
-              elegida === g.id ? ' rueda__gajo--activo' : ''
-            }" d="${g.d}" fill="${g.tono}" stroke="#791613" stroke-width="1.5" stroke-linejoin="round"/>`,
+            `<path class="rueda__gajo" d="${g.d}" fill="${g.tono}" stroke="#791613" stroke-width="1.5" stroke-linejoin="round"/>`,
         )
-        .join('')
+        .join('')}</svg>`,
+    )
+    const porciones = dibujo.querySelectorAll('.rueda__gajo')
+    gajos.forEach((g, i) => {
+      g.porcion = porciones[i]
+    })
 
-      NA.poner(caja, [
-        NA.h('h2', { class: 'centro' }, t.titulo),
-        NA.dani(NA.INTRO_EMOCIONES),
-        NA.h('p', { class: 'centro', style: 'font-size:var(--t-chico); margin:0' }, t.consigna),
+    gajos.forEach((g) => {
+      g.chip = NA.h(
+        'button',
+        {
+          class: 'rueda__chip',
+          style: 'left: ' + g.izquierda + '%; top: ' + g.arriba + '%',
+          'aria-pressed': 'false',
+          alTocar: () => elegir(g),
+        },
+        g.nombre,
+      )
+    })
 
-        NA.h('div', { class: 'rueda' }, [
-          NA.svg(
-            `<svg class="rueda__dibujo" viewBox="0 0 ${LADO} ${LADO}" aria-hidden="true" focusable="false">${porciones}</svg>`,
-          ),
+    const rueda = NA.h('div', { class: 'rueda' }, [
+      dibujo,
+      /* La frutilla de la marca tapa el punto donde se juntan las
+         siete porciones, que quedaba sucio. Es decoración: el lector
+         de pantalla la ignora. */
+      NA.h('img', {
+        class: 'rueda__frutilla',
+        src: 'assets/sello-frutilla-claro.png',
+        alt: '',
+        'aria-hidden': 'true',
+      }),
+      gajos.map((g) => g.chip),
+    ])
 
-          /* La frutilla de la marca tapa el punto donde se juntan las
-             siete porciones, que quedaba sucio. Es decoración: el
-             lector de pantalla la ignora. */
-          NA.h('img', {
-            class: 'rueda__frutilla',
-            src: 'assets/sello-frutilla-claro.png',
-            alt: '',
-            'aria-hidden': 'true',
-          }),
+    /* Abajo: el recuadro con lo que cuenta Dani y el botón. Se crea
+       la primera vez que el chico elige. */
+    const lugarRespuesta = NA.h('div')
+    const final = NA.h('div', { style: 'display:grid; gap:0.85rem' })
 
-          gajos.map((g) =>
-            NA.h(
-              'button',
-              {
-                class: 'rueda__chip' + (elegida === g.id ? ' rueda__chip--activo' : ''),
-                style: 'left: ' + g.izquierda + '%; top: ' + g.arriba + '%',
-                'aria-pressed': elegida === g.id ? 'true' : 'false',
-                alTocar: () => {
-                  elegida = g.id
-                  dibujar()
-                },
-              },
-              g.nombre,
-            ),
-          ),
-        ]),
-      ])
+    function elegir(g) {
+      const primera = elegida === null
+      elegida = g.id
 
-      if (emocion) {
-        const final = NA.h('div', { style: 'display:grid; gap:0.85rem' }, [
-          /* El recuadro se pinta del color de la emoción elegida. */
-          NA.h(
-            'div',
-            {
-              class: 'respuesta respuesta--emocion',
-              role: 'status',
-              style: 'background: ' + emocion.tono + '; border-color: ' + oscurecer(emocion.tono),
-            },
-            [
-              NA.svg(NA.icono.lupa(44)),
-              NA.h('div', null, [
-                NA.h('p', { class: 'respuesta__titulo' }, emocion.nombre),
-                NA.h('p', { class: 'respuesta__texto' }, emocion.texto),
-              ]),
-            ],
-          ),
-          NA.boton(t.seguir, { alTocar: alTerminar }),
-        ])
-        NA.poner(caja, final)
+      /* Sólo cambian las clases: así la porción y la palabra crecen
+         con su transición en vez de saltar. */
+      gajos.forEach((x) => {
+        const activa = x.id === elegida
+        x.porcion.setAttribute('class', 'rueda__gajo' + (activa ? ' rueda__gajo--activo' : ''))
+        x.chip.className = 'rueda__chip' + (activa ? ' rueda__chip--activo' : '')
+        x.chip.setAttribute('aria-pressed', activa ? 'true' : 'false')
+      })
+
+      /* El recuadro se pinta del color de la emoción elegida. */
+      NA.vaciar(lugarRespuesta)
+      NA.poner(
+        lugarRespuesta,
+        NA.h(
+          'div',
+          {
+            class: 'respuesta respuesta--emocion',
+            role: 'status',
+            style: 'background: ' + g.tono + '; border-color: ' + oscurecer(g.tono),
+          },
+          [
+            NA.svg(NA.icono.lupa(44)),
+            NA.h('div', null, [
+              NA.h('p', { class: 'respuesta__titulo' }, g.nombre),
+              NA.h('p', { class: 'respuesta__texto' }, g.texto),
+            ]),
+          ],
+        ),
+      )
+
+      if (primera) {
+        NA.poner(final, [lugarRespuesta, NA.boton(t.seguir, { alTocar: alTerminar })])
         NA.llevarALaVista(final)
       }
     }
 
-    dibujar()
-    return caja
+    return NA.h('div', { style: 'display:grid; gap:0.85rem' }, [
+      NA.h('h2', { class: 'centro' }, t.titulo),
+      NA.dani(NA.INTRO_EMOCIONES),
+      NA.h('p', { class: 'centro', style: 'font-size:var(--t-chico); margin:0' }, t.consigna),
+      rueda,
+      final,
+    ])
   }
 
   /* ============================================================
@@ -159,37 +177,35 @@ window.NA = window.NA || {}
     const situacion = NA.alAzar(NA.SITUACIONES)
     let elegida = null
 
-    const caja = NA.h('div', { style: 'display:grid; gap:0.85rem' })
+    const final = NA.h('div', { style: 'display:grid; gap:0.85rem' })
 
-    function dibujar() {
-      NA.vaciar(caja)
+    const botones = situacion.opciones.map((opcion) => ({
+      opcion,
+      boton: NA.h(
+        'button',
+        {
+          class: 'opcion opcion--vertical',
+          'aria-pressed': 'false',
+          alTocar: () => elegir(opcion),
+        },
+        opcion,
+      ),
+    }))
 
-      NA.poner(caja, [
-        NA.dani(situacion.texto),
-        NA.h('h2', { class: 'centro' }, situacion.pregunta),
+    function elegir(opcion) {
+      const primera = elegida === null
+      elegida = opcion
 
-        NA.h(
-          'div',
-          { class: 'opciones opciones--dos' },
-          situacion.opciones.map((opcion) =>
-            NA.h(
-              'button',
-              {
-                class: 'opcion opcion--vertical' + (elegida === opcion ? ' opcion--acierto' : ''),
-                'aria-pressed': elegida === opcion ? 'true' : 'false',
-                alTocar: () => {
-                  elegida = opcion
-                  dibujar()
-                },
-              },
-              opcion,
-            ),
-          ),
-        ),
-      ])
+      botones.forEach((b) => {
+        const activa = b.opcion === elegida
+        b.boton.className = 'opcion opcion--vertical' + (activa ? ' opcion--acierto' : '')
+        b.boton.setAttribute('aria-pressed', activa ? 'true' : 'false')
+      })
 
-      if (elegida) {
-        const final = NA.h('div', { style: 'display:grid; gap:0.85rem' }, [
+      /* Todas sirven, así que lo que cuenta Dani es el mismo mensaje
+         para cualquier opción: se pone una sola vez. */
+      if (primera) {
+        NA.poner(final, [
           NA.h(
             'div',
             { class: 'respuesta respuesta--acierto', role: 'status' },
@@ -197,12 +213,19 @@ window.NA = window.NA || {}
           ),
           NA.boton(NA.textos.comun.seguir, { alTocar: alTerminar }),
         ])
-        NA.poner(caja, final)
         NA.llevarALaVista(final)
       }
     }
 
-    dibujar()
-    return caja
+    return NA.h('div', { style: 'display:grid; gap:0.85rem' }, [
+      NA.dani(situacion.texto),
+      NA.h('h2', { class: 'centro' }, situacion.pregunta),
+      NA.h(
+        'div',
+        { class: 'opciones opciones--dos' },
+        botones.map((b) => b.boton),
+      ),
+      final,
+    ])
   }
 })()
