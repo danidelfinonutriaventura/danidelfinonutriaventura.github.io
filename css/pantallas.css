@@ -598,20 +598,17 @@
 }
 
 /* ============================================================
-   IMPRESIÓN — A4 HORIZONTAL
+   IMPRESIÓN — A4
    Se oculta toda la interfaz: en la hoja queda solo el certificado.
    ============================================================ */
 @media print {
-  /* El margen lo pone la hoja, no la página.
-     Acá antes decía "margin: 8mm". Con eso quedaban 281 mm de ancho
-     útil y, al mantener la proporción A4, la hoja pedía 198,7 mm de
-     alto cuando solo quedaban 194 mm libres. Esos 4,7 mm de más
-     empujaban el certificado a una segunda hoja.
-     Ahora la hoja lleva medidas fijas, calculadas para entrar en una
-     sola con casi 1 cm de margen por todos lados. */
+  /* Pedimos hoja horizontal. Pero OJO: Safari del iPhone ignora este
+     pedido y siempre imprime en vertical, y algunas impresoras
+     también. Por eso el certificado de abajo NO tiene un ancho fijo:
+     se achica solo cuando la hoja es angosta. */
   @page {
     size: A4 landscape;
-    margin: 0;
+    margin: 7mm;
   }
 
   html, body, #root {
@@ -632,16 +629,20 @@
   /* ...salvo el certificado, que ocupa la hoja entera. */
   .pantalla__cuerpo { display: block; max-width: none; padding: 0; margin: 0; gap: 0; }
   .hoja {
-    /* 192 mm de alto + 7 arriba + 7 abajo = 206 mm: quedan 4 mm de
-       sobra sobre los 210 de la hoja A4. Esa holgura es a propósito,
-       porque cada impresora redondea distinto y, si el cálculo da
-       justo 210, cualquier décima de más manda todo a una segunda
-       hoja. El ancho mantiene la proporción A4: 192 × 297/210. */
+    /* HOJA HORIZONTAL: con 7 mm de margen quedan 283 × 196 mm libres.
+       El certificado mide 271,5 × 192 mm y entra en una sola hoja con
+       4 mm de holgura. Esa holgura es a propósito: cada impresora
+       redondea distinto y, si diera justo, cualquier décima de más lo
+       mandaría a una segunda hoja.
+       HOJA VERTICAL (iPhone, o una impresora que no hace caso): quedan
+       sólo 196 mm de ancho. Ahí max-width lo achica al ancho de la hoja
+       y aspect-ratio mantiene la proporción, así sale entero en vez de
+       cortado por la mitad. Todo lo de adentro se achica con él. */
     width: 271.5mm;
-    height: 192mm;
-    max-width: none;
-    aspect-ratio: auto;
-    margin: 7mm auto;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 297 / 210;
+    margin: 0 auto;
     overflow: hidden;
     page-break-inside: avoid;
     break-inside: avoid;
