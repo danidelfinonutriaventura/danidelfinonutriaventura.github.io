@@ -213,19 +213,40 @@ window.NA = window.NA || {}
      Es más importante que el chico lo vea que la elegancia. */
   NA.llevarALaVista = function llevarALaVista(el) {
     if (!el) return
-    const entra = (e) => {
-      const c = e.getBoundingClientRect()
-      return c.top >= 0 && c.bottom <= window.innerHeight
+
+    /* Si el chico toca la pantalla o desliza mientras tanto, NO movemos
+       nada: sería pelearle al dedo. Eso era lo que hacía que la página
+       saltara cuando deslizaban para ver la barra del navegador. */
+    let interrumpido = false
+    const alTocar = () => {
+      interrumpido = true
+    }
+    window.addEventListener('touchstart', alTocar, { passive: true })
+    window.addEventListener('wheel', alTocar, { passive: true })
+    const soltar = () => {
+      window.removeEventListener('touchstart', alTocar)
+      window.removeEventListener('wheel', alTocar)
+    }
+
+    /* Sólo hace falta bajar si el botón quedó por DEBAJO de lo que se
+       ve. Medimos contra visualViewport, que en iPhone es el alto que
+       de verdad está a la vista (descuenta la barra del navegador). */
+    const quedoAbajo = () => {
+      const alto = window.visualViewport ? window.visualViewport.height : window.innerHeight
+      return el.getBoundingClientRect().bottom > alto
     }
     const menosMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     window.setTimeout(() => {
-      if (!el.isConnected || entra(el)) return
+      if (interrumpido || !el.isConnected || !quedoAbajo()) return
       el.scrollIntoView({ behavior: menosMovimiento ? 'auto' : 'smooth', block: 'nearest' })
     }, 80)
 
+    /* Red de seguridad: si el deslizamiento suave no llegó, saltamos.
+       Pero sólo si nadie tocó la pantalla mientras tanto. */
     window.setTimeout(() => {
-      if (!el.isConnected || entra(el)) return
+      soltar()
+      if (interrumpido || !el.isConnected || !quedoAbajo()) return
       el.scrollIntoView({ behavior: 'auto', block: 'nearest' })
     }, 700)
   }

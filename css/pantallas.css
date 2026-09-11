@@ -620,7 +620,7 @@
   }
 
   /* La textura de papel es para la pantalla, no para la impresora. */
-  body::after { display: none !important; }
+  .pantalla::after { display: none !important; }
 
   /* Nada de la aplicación se imprime... */
   .pantalla { min-height: 0; padding: 0; margin: 0; background: none !important; }

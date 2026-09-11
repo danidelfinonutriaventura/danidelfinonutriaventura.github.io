@@ -81,11 +81,14 @@ img, svg { max-width: 100%; display: block; }
    ============================================================ */
 .pantalla {
   /* Los dos renglones son a propósito. Los iPhone anteriores a
-     Safari 15.4 no entienden "dvh" y se quedan con el primero;
-     los demás usan el segundo, que descuenta la barra del navegador
-     cuando aparece y desaparece al hacer scroll. */
+     Safari 15.4 no entienden "svh" y se quedan con el primero.
+     OJO: antes decía "dvh", que cambia MIENTRAS la barra del
+     navegador aparece o se esconde. Eso obligaba a reacomodar la
+     pantalla entera en pleno deslizamiento y el juego se trababa.
+     "svh" es el alto con la barra a la vista: nunca cambia al
+     deslizar, y la pantalla siempre entra entera. */
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 100svh;
   display: flex; flex-direction: column;
   padding: max(0.75rem, env(safe-area-inset-top)) var(--sep)
            max(1.25rem, env(safe-area-inset-bottom));
@@ -366,9 +369,13 @@ img, svg { max-width: 100%; display: block; }
    no pesa nada. Va tan suave que no se lee como "ruido", solo
    se nota si se saca.
    ============================================================ */
-body::after {
+/* La textura va pegada a cada pantalla y se desplaza con ella.
+   Antes era una capa FIJA sobre toda la ventana: cada vez que la
+   barra del iPhone aparecía o se escondía, esa capa cambiaba de
+   tamaño y había que redibujarla entera, y el juego daba tirones. */
+.pantalla::after {
   content: '';
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
