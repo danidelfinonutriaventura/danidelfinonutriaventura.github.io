@@ -11,6 +11,13 @@ html {
      no. Sin esto, girar el celular descoloca todas las pantallas. */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Si tirás hacia abajo estando arriba de todo, el navegador hace
+     cosas suyas: Android recarga la página, y Chrome del iPhone
+     muestra "+ / recargar / X" (soltar sobre la X CIERRA la pestaña
+     y se pierde la partida). "none" le pide que no haga nada de eso.
+     OJO: va en <html> y no en <body>. Para la página entera el
+     navegador sólo mira el de <html>; en <body> lo ignora. */
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -23,9 +30,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
-  /* Android Chrome recarga la página si tirás hacia abajo estando
-     arriba de todo. En medio de un juego eso borra la partida. */
-  overscroll-behavior-y: contain;
 }
 
 /* Nada de esperar 300 ms ni de hacer zoom con doble toque sobre algo
