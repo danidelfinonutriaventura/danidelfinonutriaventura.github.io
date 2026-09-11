@@ -81,13 +81,17 @@ window.NA = window.NA || {}
           boton: NA.h(
             'button',
             { class: 'opcion', 'aria-pressed': 'false', alTocar: () => elegir(opcion) },
-            opcion,
+            opcion.texto,
           ),
         }))
         NA.poner(
           opciones,
           botones.map((b) => b.boton),
         )
+
+        /* El recuadro de Dani se crea una vez; al cambiar de opción
+           sólo se le cambia el texto, así no parpadea. */
+        const textoDani = NA.h('p', { class: 'respuesta__texto' })
 
         function elegir(opcion) {
           const primera = respuesta === null
@@ -98,14 +102,16 @@ window.NA = window.NA || {}
             b.boton.setAttribute('aria-pressed', activa ? 'true' : 'false')
           })
 
-          /* Lo que dice Dani es el mismo para cualquier opción: sin
-             juzgar la elección. Se pone la primera vez y listo. */
+          /* Cada opción tiene su propia respuesta, que acompaña lo que
+             el chico eligió sin juzgarlo. Si cambia de opción, cambia. */
+          textoDani.textContent = opcion.respuesta
+
           if (primera) {
             NA.poner(final, [
               NA.h(
                 'div',
                 { class: 'respuesta respuesta--otra', role: 'status' },
-                NA.h('div', null, NA.h('p', { class: 'respuesta__texto' }, actual.respuestaDani)),
+                NA.h('div', null, textoDani),
               ),
               NA.boton(NA.textos.comun.seguir, {
                 alTocar: () => {
